@@ -71,6 +71,12 @@ const EXDB = {
       tip: "Inclinándote hacia adelante trabajás más pecho; vertical, más tríceps. Bajá hasta 90° de codo." },
     { name: "Cruce de poleas", eq: "Polea", ratio: null,
       tip: "Paso adelante, torso levemente inclinado. Juntá las manos al frente apretando el pecho 1 segundo." },
+    { name: "Press declinado con barra", eq: "Barra", ratio: [0.6, 1.05, 1.55],
+      tip: "Banco declinado 15–30°. Enfatiza el pecho inferior; la barra baja a la parte baja del pecho." },
+    { name: "Press de pecho en máquina", eq: "Máquina", ratio: null,
+      tip: "Ajustá el asiento para que las manijas queden a la altura del pecho medio. Ideal para llegar al fallo con seguridad." },
+    { name: "Flexiones diamante", eq: "Peso corporal", ratio: null,
+      tip: "Manos juntas formando un diamante bajo el pecho. Trabaja pecho interno y tríceps a fondo." },
   ]},
   hombros: { label: "Hombros", icon: "🪨", exercises: [
     { name: "Press militar con barra", eq: "Barra", ratio: [0.4, 0.65, 0.9],
@@ -85,6 +91,10 @@ const EXDB = {
       tip: "Tirá la soga hacia la cara separando las manos al final. Excelente para postura y salud del hombro." },
     { name: "Press Arnold", eq: "Mancuernas", ratio: null,
       tip: "Arrancá con palmas hacia vos y rotá mientras subís. Recorrido largo: usá menos peso que en press normal." },
+    { name: "Elevaciones frontales", eq: "Mancuernas", ratio: null,
+      tip: "Subí al frente hasta la altura de los ojos, alternando brazos. Sin balanceo del torso." },
+    { name: "Press en máquina de hombros", eq: "Máquina", ratio: null,
+      tip: "Espalda pegada al respaldo. Perfecta para series pesadas sin comprometer el equilibrio." },
   ]},
   biceps: { label: "Bíceps", icon: "💪", exercises: [
     { name: "Curl con barra", eq: "Barra", ratio: [0.25, 0.45, 0.65],
@@ -99,6 +109,10 @@ const EXDB = {
       tip: "Tensión constante en todo el recorrido. Ideal para terminar con series de 12–15." },
     { name: "Chin-ups (dominadas supinas)", eq: "Peso corporal", ratio: null,
       tip: "Agarre con palmas hacia vos, al ancho de hombros. Uno de los mejores constructores de bíceps." },
+    { name: "Curl concentrado", eq: "Mancuerna", ratio: null,
+      tip: "Sentado, codo apoyado en la cara interna del muslo. Aislamiento total, cero trampa." },
+    { name: "Curl predicador (banco Scott)", eq: "Barra Z", ratio: null,
+      tip: "Brazos apoyados en el banco inclinado. No extiendas del todo abajo para proteger el codo." },
   ]},
   antebrazos: { label: "Antebrazos", icon: "🤜", exercises: [
     { name: "Curl de muñeca con barra", eq: "Barra", ratio: null,
@@ -121,6 +135,32 @@ const EXDB = {
       tip: "Desde rodillas, rodá hasta donde controles sin arquear la zona lumbar. Volvé con el abdomen, no con los brazos." },
     { name: "Pallof press", eq: "Polea", ratio: null,
       tip: "Antirotación: empujá la manija al frente resistiendo que el cable te gire. Oro para el core." },
+    { name: "Crunch bicicleta", eq: "Peso corporal", ratio: null,
+      tip: "Codo hacia la rodilla contraria alternando, con rotación real del torso, no solo del cuello." },
+    { name: "Dead bug", eq: "Peso corporal", ratio: null,
+      tip: "Boca arriba, bajá brazo y pierna opuestos sin despegar la zona lumbar del piso." },
+  ]},
+  oblicuos: { label: "Oblicuos", icon: "🌀", exercises: [
+    { name: "Leñador en polea (woodchopper)", eq: "Polea", ratio: null,
+      tip: "Movimiento diagonal de arriba-abajo cruzando el cuerpo. Girá desde el torso, con los brazos casi rectos." },
+    { name: "Plancha lateral", eq: "Peso corporal", ratio: null,
+      tip: "Codo bajo el hombro, cadera alta formando línea recta. Sumá segundos o apoyá pies en banco para progresar." },
+    { name: "Russian twist", eq: "Disco/Mancuerna", ratio: null,
+      tip: "Sentado con torso a 45°, girá el peso de lado a lado tocando el piso. Pies elevados para más intensidad." },
+    { name: "Inclinaciones laterales con mancuerna", eq: "Mancuerna", ratio: null,
+      tip: "Una mancuerna en una sola mano; bajá lateral y volvé usando el oblicuo contrario. No uses dos a la vez." },
+    { name: "Elevación de rodillas con giro", eq: "Peso corporal", ratio: null,
+      tip: "Colgado de la barra, subí las rodillas hacia un hombro alternando lados." },
+  ]},
+  aductores: { label: "Aductores", icon: "🧲", exercises: [
+    { name: "Máquina de aducción", eq: "Máquina", ratio: null,
+      tip: "Cerrá las piernas contra la resistencia con pausa de 1 s. Bajá lento; reps de 12–15." },
+    { name: "Sentadilla sumo con mancuerna", eq: "Mancuerna", ratio: null,
+      tip: "Postura bien ancha, puntas afuera. La mancuerna cuelga entre las piernas; sentí la cara interna del muslo." },
+    { name: "Copenhagen plank", eq: "Peso corporal", ratio: null,
+      tip: "Plancha lateral con la pierna de arriba apoyada en un banco. El estándar de oro para aductores; empezá con rodilla apoyada." },
+    { name: "Zancada lateral", eq: "Peso corporal", ratio: null,
+      tip: "Paso amplio hacia el costado bajando la cadera; la pierna estirada trabaja el aductor en estiramiento." },
   ]},
   cuadriceps: { label: "Cuádriceps", icon: "🦵", exercises: [
     { name: "Sentadilla con barra", eq: "Barra", ratio: [0.8, 1.25, 1.75],
@@ -135,6 +175,12 @@ const EXDB = {
       tip: "Apretá 1 segundo arriba y bajá lento. Ideal para pre-fatigar o terminar la sesión." },
     { name: "Sentadilla goblet", eq: "Mancuerna", ratio: null,
       tip: "Mancuerna al pecho como copa. La mejor para aprender el patrón de sentadilla con técnica limpia." },
+    { name: "Hack squat", eq: "Máquina", ratio: null,
+      tip: "Espalda apoyada en el respaldo, pies bajos en la plataforma para más cuádriceps. Bajá profundo y controlado." },
+    { name: "Sentadilla frontal", eq: "Barra", ratio: [0.6, 1.0, 1.4],
+      tip: "Barra apoyada en los hombros delanteros, codos altos. Torso más vertical = más cuádriceps y más core." },
+    { name: "Step-up al banco", eq: "Mancuernas", ratio: null,
+      tip: "Subí a un banco empujando solo con la pierna de arriba, sin impulso de la de abajo." },
   ]},
   gluteos: { label: "Glúteos", icon: "🍑", exercises: [
     { name: "Hip thrust con barra", eq: "Barra", ratio: [0.8, 1.4, 2.0],
@@ -189,6 +235,12 @@ const EXDB = {
       tip: "Rodilla y mano apoyadas en banco. Tirá la mancuerna hacia la cadera, no hacia el hombro." },
     { name: "Pullover en polea", eq: "Polea", ratio: null,
       tip: "Brazos casi rectos, llevá la barra desde arriba hasta los muslos. Aísla el dorsal como pocos." },
+    { name: "Remo T con apoyo de pecho", eq: "Máquina", ratio: null,
+      tip: "El pecho apoyado elimina el impulso lumbar. Apretá los omóplatos 1 s en cada rep." },
+    { name: "Dominadas agarre neutro", eq: "Peso corporal", ratio: null,
+      tip: "Palmas enfrentadas: la variante más amigable con hombros y codos. Gran transferencia a remo y peso muerto." },
+    { name: "Rack pull", eq: "Barra", ratio: null,
+      tip: "Peso muerto parcial desde soportes a la altura de las rodillas. Permite sobrecargar la espalda alta con seguridad." },
   ]},
   lumbar: { label: "Zona lumbar", icon: "🛡️", exercises: [
     { name: "Extensiones lumbares (banco 45°)", eq: "Banco", ratio: null,
@@ -209,11 +261,15 @@ const EXDB = {
       tip: "Manos en un banco, pies en otro. Bajá hasta 90° de codo; sumá disco en las piernas para progresar." },
     { name: "Extensión sobre la cabeza", eq: "Mancuerna", ratio: null,
       tip: "Una mancuerna con ambas manos detrás de la cabeza. Estira la cabeza larga del tríceps." },
+    { name: "Patada de tríceps en polea", eq: "Polea", ratio: null,
+      tip: "Torso inclinado, codo fijo pegado al cuerpo; extendé hacia atrás y apretá 1 s arriba." },
+    { name: "Extensión con soga", eq: "Polea", ratio: null,
+      tip: "Al final del recorrido separá las puntas de la soga hacia afuera para máxima contracción." },
   ]},
 };
 
-const FRONT_MUSCLES = ["hombros", "pecho", "biceps", "antebrazos", "abdomen", "cuadriceps"];
-const BACK_MUSCLES = ["trapecio", "espalda", "triceps", "lumbar", "gluteos", "isquios", "gemelos"];
+const FRONT_MUSCLES = ["hombros", "pecho", "biceps", "antebrazos", "abdomen", "oblicuos", "cuadriceps", "aductores"];
+const BACK_MUSCLES = ["trapecio", "hombros", "espalda", "triceps", "antebrazos", "lumbar", "gluteos", "isquios", "gemelos"];
 
 /* ---------- utilidades ---------- */
 const dstr = (d = new Date()) =>
@@ -436,11 +492,50 @@ function DayPicker({ days, onToggle }) {
   );
 }
 
+function PageHeader({ title, subtitle, right }) {
+  return (
+    <div style={{ padding: "4px 4px 0", display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+      <div>
+        {subtitle && (
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: C.primary, textTransform: "uppercase", letterSpacing: 1.2 }}>
+            {subtitle}
+          </div>
+        )}
+        <h1 style={{ margin: "4px 0 0", fontSize: 30, fontWeight: 800, letterSpacing: -0.8, lineHeight: 1.05 }}>{title}</h1>
+      </div>
+      {right}
+    </div>
+  );
+}
+
+function Segmented({ options, value, onChange }) {
+  return (
+    <div style={{
+      display: "flex", background: C.soft, borderRadius: 14, padding: 4, gap: 4,
+      border: `1px solid ${C.line}`,
+    }}>
+      {options.map(([id, lbl]) => {
+        const active = value === id;
+        return (
+          <button key={id} onClick={() => onChange(id)} style={{
+            flex: 1, padding: "9px 4px", borderRadius: 10, border: "none", cursor: "pointer",
+            fontWeight: 800, fontSize: 12.5, fontFamily: FONT, letterSpacing: -0.1,
+            background: active ? C.card : "transparent",
+            color: active ? C.ink : C.sub,
+            boxShadow: active ? "0 1px 4px rgba(0,0,0,0.10)" : "none",
+            transition: "all 0.15s",
+          }}>{lbl}</button>
+        );
+      })}
+    </div>
+  );
+}
+
 /* ============ MAPA MUSCULAR ============ */
 function BodyMap({ side, selected, onSelect }) {
   const sel = (id) => selected === id;
   const P = (id) => ({
-    fill: sel(id) ? C.amber : C.primary,
+    fill: sel(id) ? C.accent : C.primary,
     opacity: sel(id) ? 1 : 0.55,
     cursor: "pointer",
     stroke: sel(id) ? C.ink : "none",
@@ -450,47 +545,83 @@ function BodyMap({ side, selected, onSelect }) {
   });
 
   return (
-    <svg viewBox="0 0 200 430" style={{ width: "100%", maxWidth: 230, display: "block", margin: "0 auto" }}>
-      {/* silueta */}
+    <svg viewBox="0 0 200 440" style={{ width: "100%", maxWidth: 240, display: "block", margin: "0 auto", filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.06))" }}>
+      {/* ===== silueta atlética (torso en V, cintura fina) ===== */}
       <g fill={C.body}>
-        <circle cx="100" cy="28" r="17" />
-        <rect x="92" y="42" width="16" height="14" rx="5" />
-        <path d="M62 58 h76 a10 10 0 0 1 10 10 v100 a10 10 0 0 1 -10 10 h-76 a10 10 0 0 1 -10 -10 v-100 a10 10 0 0 1 10 -10 z" />
-        <rect x="34" y="66" width="20" height="120" rx="10" />
-        <rect x="146" y="66" width="20" height="120" rx="10" />
-        <rect x="66" y="178" width="30" height="170" rx="13" />
-        <rect x="104" y="178" width="30" height="170" rx="13" />
-        <rect x="70" y="348" width="24" height="55" rx="10" />
-        <rect x="106" y="348" width="24" height="55" rx="10" />
+        {/* cabeza y cuello */}
+        <ellipse cx="100" cy="24" rx="14" ry="16" />
+        <path d="M92 38 h16 l3 15 h-22 z" />
+        {/* torso en V: hombros anchos → cintura fina → cadera */}
+        <path d="M58 58 Q100 46 142 58 L136 96 Q129 132 123 152 L123 170 Q112 178 100 178 Q88 178 77 170 L77 152 Q71 132 64 96 Z" />
+        {/* brazo izquierdo con deltoides y taper */}
+        <path d="M60 60 Q45 65 42 82 Q39 104 42 124 Q42 144 38 162 Q36 180 34 196 L46 199 Q49 182 51 165 Q54 146 53 128 Q55 106 56 88 Q57 70 60 60 Z" />
+        {/* brazo derecho */}
+        <path d="M140 60 Q155 65 158 82 Q161 104 158 124 Q158 144 162 162 Q164 180 166 196 L154 199 Q151 182 149 165 Q146 146 147 128 Q145 106 144 88 Q143 70 140 60 Z" />
+        {/* pierna izquierda: muslo → rodilla → gemelo → tobillo */}
+        <path d="M77 172 Q69 202 69 234 Q69 264 76 290 L74 306 Q71 336 76 364 Q78 388 78 410 L93 410 Q94 388 93 366 Q95 338 92 308 L96 290 Q101 262 99 234 Q98 204 100 178 Z" />
+        {/* pierna derecha */}
+        <path d="M123 172 Q131 202 131 234 Q131 264 124 290 L126 306 Q129 336 124 364 Q122 388 122 410 L107 410 Q106 388 107 366 Q105 338 108 308 L104 290 Q99 262 101 234 Q102 204 100 178 Z" />
       </g>
 
       {side === "front" ? (
         <g>
-          <ellipse cx="62" cy="72" rx="15" ry="11" {...P("hombros")} />
-          <ellipse cx="138" cy="72" rx="15" ry="11" {...P("hombros")} />
-          <ellipse cx="83" cy="93" rx="18" ry="14" {...P("pecho")} />
-          <ellipse cx="117" cy="93" rx="18" ry="14" {...P("pecho")} />
-          <ellipse cx="46" cy="112" rx="9" ry="18" {...P("biceps")} />
-          <ellipse cx="154" cy="112" rx="9" ry="18" {...P("biceps")} />
-          <ellipse cx="43" cy="158" rx="8" ry="22" {...P("antebrazos")} />
-          <ellipse cx="157" cy="158" rx="8" ry="22" {...P("antebrazos")} />
-          <rect x="83" y="112" width="34" height="58" rx="10" {...P("abdomen")} />
-          <ellipse cx="81" cy="250" rx="14" ry="48" {...P("cuadriceps")} />
-          <ellipse cx="119" cy="250" rx="14" ry="48" {...P("cuadriceps")} />
+          {/* hombros (deltoides) */}
+          <ellipse cx="57" cy="66" rx="13" ry="11" {...P("hombros")} />
+          <ellipse cx="143" cy="66" rx="13" ry="11" {...P("hombros")} />
+          {/* pecho: dos placas pectorales */}
+          <path d="M76 74 Q98 68 99 92 Q97 105 84 104 Q72 100 73 86 Z" {...P("pecho")} />
+          <path d="M124 74 Q102 68 101 92 Q103 105 116 104 Q128 100 127 86 Z" {...P("pecho")} />
+          {/* bíceps */}
+          <ellipse cx="48" cy="110" rx="8" ry="17" transform="rotate(6 48 110)" {...P("biceps")} />
+          <ellipse cx="152" cy="110" rx="8" ry="17" transform="rotate(-6 152 110)" {...P("biceps")} />
+          {/* antebrazos */}
+          <ellipse cx="42" cy="162" rx="7" ry="21" transform="rotate(4 42 162)" {...P("antebrazos")} />
+          <ellipse cx="158" cy="162" rx="7" ry="21" transform="rotate(-4 158 162)" {...P("antebrazos")} />
+          {/* abdomen con six-pack */}
+          <g {...P("abdomen")}>
+            <rect x="86" y="110" width="28" height="54" rx="9" />
+          </g>
+          <g stroke={C.card} strokeWidth="1.4" opacity={sel("abdomen") ? 0.5 : 0.35} pointerEvents="none">
+            <line x1="100" y1="112" x2="100" y2="162" />
+            <line x1="87" y1="126" x2="113" y2="126" />
+            <line x1="87" y1="140" x2="113" y2="140" />
+          </g>
+          {/* oblicuos */}
+          <path d="M78 114 Q84 116 84 160 Q77 156 74 138 Q74 124 78 114 Z" {...P("oblicuos")} />
+          <path d="M122 114 Q116 116 116 160 Q123 156 126 138 Q126 124 122 114 Z" {...P("oblicuos")} />
+          {/* cuádriceps */}
+          <ellipse cx="83" cy="240" rx="13" ry="46" {...P("cuadriceps")} />
+          <ellipse cx="117" cy="240" rx="13" ry="46" {...P("cuadriceps")} />
+          {/* aductores (cara interna del muslo) */}
+          <ellipse cx="94" cy="216" rx="5" ry="28" {...P("aductores")} />
+          <ellipse cx="106" cy="216" rx="5" ry="28" {...P("aductores")} />
         </g>
       ) : (
         <g>
-          <path d="M74 62 Q100 52 126 62 L118 86 Q100 78 82 86 Z" {...P("trapecio")} />
-          <path d="M74 90 h52 v28 q0 8 -8 12 l-18 10 l-18 -10 q-8 -4 -8 -12 z" {...P("espalda")} />
-          <ellipse cx="46" cy="112" rx="9" ry="18" {...P("triceps")} />
-          <ellipse cx="154" cy="112" rx="9" ry="18" {...P("triceps")} />
-          <rect x="86" y="142" width="28" height="24" rx="8" {...P("lumbar")} />
-          <ellipse cx="84" cy="188" rx="16" ry="15" {...P("gluteos")} />
-          <ellipse cx="116" cy="188" rx="16" ry="15" {...P("gluteos")} />
-          <ellipse cx="81" cy="255" rx="13" ry="42" {...P("isquios")} />
-          <ellipse cx="119" cy="255" rx="13" ry="42" {...P("isquios")} />
-          <ellipse cx="82" cy="368" rx="10" ry="24" {...P("gemelos")} />
-          <ellipse cx="118" cy="368" rx="10" ry="24" {...P("gemelos")} />
+          {/* trapecio: rombo superior */}
+          <path d="M100 50 L128 64 L114 96 Q100 88 86 96 L72 64 Z" {...P("trapecio")} />
+          {/* hombros posteriores */}
+          <ellipse cx="57" cy="66" rx="12" ry="10" {...P("hombros")} />
+          <ellipse cx="143" cy="66" rx="12" ry="10" {...P("hombros")} />
+          {/* dorsales en V */}
+          <path d="M72 94 L128 94 L121 124 Q100 148 79 124 Z" {...P("espalda")} />
+          {/* tríceps */}
+          <ellipse cx="48" cy="110" rx="8" ry="17" transform="rotate(6 48 110)" {...P("triceps")} />
+          <ellipse cx="152" cy="110" rx="8" ry="17" transform="rotate(-6 152 110)" {...P("triceps")} />
+          {/* antebrazos (vista posterior) */}
+          <ellipse cx="42" cy="162" rx="7" ry="21" transform="rotate(4 42 162)" {...P("antebrazos")} />
+          <ellipse cx="158" cy="162" rx="7" ry="21" transform="rotate(-4 158 162)" {...P("antebrazos")} />
+          {/* lumbar */}
+          <path d="M88 148 h24 v20 q-12 9 -24 0 z" {...P("lumbar")} />
+          {/* glúteos */}
+          <ellipse cx="86" cy="188" rx="15" ry="14" {...P("gluteos")} />
+          <ellipse cx="114" cy="188" rx="15" ry="14" {...P("gluteos")} />
+          {/* isquiotibiales */}
+          <ellipse cx="83" cy="250" rx="12" ry="42" {...P("isquios")} />
+          <ellipse cx="117" cy="250" rx="12" ry="42" {...P("isquios")} />
+          {/* gemelos */}
+          <ellipse cx="83" cy="348" rx="10" ry="26" {...P("gemelos")} />
+          <ellipse cx="117" cy="348" rx="10" ry="26" {...P("gemelos")} />
         </g>
       )}
     </svg>
@@ -1101,7 +1232,7 @@ export default function App() {
   function Habitos() {
     return (
       <>
-        <h1 style={h1Style}>Hábitos</h1>
+        <PageHeader title="Hábitos" subtitle="Constancia diaria" />
         <Card style={{ display: "flex", gap: 8 }}>
           <Input placeholder="Nuevo hábito (ej: leer 15 min)" value={newHabit}
             onChange={(e) => setNewHabit(e.target.value)}
@@ -1210,27 +1341,31 @@ export default function App() {
     return (
       <>
         <Card>
-          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-            {[["front", "Frente"], ["back", "Espalda"]].map(([id, lbl]) => (
-              <button key={id} onClick={() => { setMapSide(id); setMuscle(null); setOpenLift(null); }} style={{
-                flex: 1, padding: "9px 0", borderRadius: 10, border: "none", cursor: "pointer",
-                fontWeight: 800, fontSize: 13, fontFamily: FONT,
-                background: mapSide === id ? C.ink : C.soft, color: mapSide === id ? C.bg : C.sub,
-              }}>{lbl}</button>
-            ))}
+          <div style={{ marginBottom: 12 }}>
+            <Segmented
+              options={[["front", "Frente"], ["back", "Espalda"]]}
+              value={mapSide}
+              onChange={(id) => { setMapSide(id); setMuscle(null); setOpenLift(null); }}
+            />
           </div>
           <BodyMap side={mapSide} selected={muscle} onSelect={(m) => { setMuscle(m === muscle ? null : m); setOpenLift(null); }} />
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", marginTop: 8 }}>
-            {muscles.map((m) => (
-              <button key={m} onClick={() => { setMuscle(m === muscle ? null : m); setOpenLift(null); }} style={{
-                border: "none", borderRadius: 10, padding: "7px 10px", cursor: "pointer",
-                fontFamily: FONT, fontWeight: 700, fontSize: 12.5,
-                background: muscle === m ? C.amber : C.soft,
-                color: muscle === m ? "#fff" : C.sub,
-              }}>{EXDB[m].icon} {EXDB[m].label}</button>
-            ))}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "center", marginTop: 12 }}>
+            {muscles.map((m) => {
+              const active = muscle === m;
+              return (
+                <button key={m} onClick={() => { setMuscle(m === muscle ? null : m); setOpenLift(null); }} style={{
+                  border: `1px solid ${active ? "transparent" : C.line}`,
+                  borderRadius: 20, padding: "7px 12px", cursor: "pointer",
+                  fontFamily: FONT, fontWeight: 700, fontSize: 12.5, letterSpacing: -0.1,
+                  background: active ? `linear-gradient(135deg, ${C.primary}, ${C.accent})` : C.card,
+                  color: active ? "#fff" : C.sub,
+                  boxShadow: active ? `0 4px 12px ${C.primaryGlow}` : "none",
+                  transition: "all 0.15s",
+                }}>{EXDB[m].icon} {EXDB[m].label}</button>
+              );
+            })}
           </div>
-          <div style={{ fontSize: 12.5, color: C.sub, textAlign: "center", marginTop: 8 }}>
+          <div style={{ fontSize: 12.5, color: C.sub, textAlign: "center", marginTop: 10 }}>
             Tocá un músculo en el cuerpo o en las etiquetas.
           </div>
         </Card>
@@ -1329,25 +1464,22 @@ export default function App() {
 
     return (
       <>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h1 style={h1Style}>Gimnasio</h1>
-          {timer > 0 ? (
+        <PageHeader title="Gimnasio" subtitle="Entrenamiento" right={
+          timer > 0 ? (
             <Btn kind="dark" small onClick={() => setTimer(0)}>⏱ {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, "0")} ✕</Btn>
           ) : (
-            <div style={{ display: "flex", gap: 6 }}>
-              {[60, 90, 120].map((t) => <Btn key={t} kind="soft" small onClick={() => setTimer(t)}>⏱{t}s</Btn>)}
+            <div style={{ display: "flex", gap: 5 }}>
+              {[60, 90, 120].map((t) => <Btn key={t} kind="soft" small style={{ padding: "7px 9px", fontSize: 12 }} onClick={() => setTimer(t)}>⏱{t}</Btn>)}
             </div>
-          )}
-        </div>
+          )
+        } />
 
-        <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-          {[["rutina", "Rutina"], ["musculos", "🧍 Músculos"], ["historial", "Historial"]].map(([id, lbl]) => (
-            <button key={id} onClick={() => setGymView(id)} style={{
-              flex: 1, padding: "10px 0", borderRadius: 12, border: "none", cursor: "pointer",
-              fontWeight: 800, fontSize: 13, fontFamily: FONT,
-              background: gymView === id ? C.ink : C.card, color: gymView === id ? C.bg : C.sub,
-            }}>{lbl}</button>
-          ))}
+        <div style={{ marginBottom: 14 }}>
+          <Segmented
+            options={[["rutina", "Rutina"], ["musculos", "🧍 Músculos"], ["historial", "Historial"]]}
+            value={gymView}
+            onChange={setGymView}
+          />
         </div>
 
         {gymView === "musculos" && Musculos()}
@@ -1373,14 +1505,28 @@ export default function App() {
         {gymView === "rutina" && (
           <>
             <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-              {DAYS.map((lbl, i) => (
-                <button key={i} onClick={() => { setGymDay(i); setEditEx(null); }} style={{
-                  flex: 1, padding: "10px 0", borderRadius: 12, border: "none", cursor: "pointer",
-                  fontWeight: 800, fontSize: 13, fontFamily: FONT,
-                  background: gymDay === i ? C.ink : C.card,
-                  color: gymDay === i ? C.bg : state.workouts[i] ? C.ink : C.sub,
-                }}>{lbl}</button>
-              ))}
+              {DAYS.map((lbl, i) => {
+                const active = gymDay === i;
+                const hasW = !!state.workouts[i];
+                return (
+                  <button key={i} onClick={() => { setGymDay(i); setEditEx(null); }} style={{
+                    flex: 1, padding: "10px 0 8px", borderRadius: 12, cursor: "pointer",
+                    fontWeight: 800, fontSize: 13, fontFamily: FONT,
+                    border: `1px solid ${active ? "transparent" : C.line}`,
+                    background: active ? `linear-gradient(135deg, ${C.primary}, ${C.accent})` : C.card,
+                    color: active ? "#fff" : hasW ? C.ink : C.sub,
+                    boxShadow: active ? `0 4px 12px ${C.primaryGlow}` : "none",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                    transition: "all 0.15s",
+                  }}>
+                    {lbl}
+                    <span style={{
+                      width: 4, height: 4, borderRadius: 2,
+                      background: active ? "rgba(255,255,255,0.9)" : hasW ? C.primary : "transparent",
+                    }} />
+                  </button>
+                );
+              })}
             </div>
 
             <Card>
@@ -1558,7 +1704,7 @@ export default function App() {
 
     return (
       <>
-        <h1 style={h1Style}>Dieta</h1>
+        <PageHeader title="Dieta" subtitle="Nutrición" />
         <Card style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <MacroBox label="Calorías" value={kcal} goal={state.goals.kcal} unit="kcal" color={C.amber} />
           <MacroBox label="Proteína" value={prot} goal={state.goals.protein} unit="g" color={C.primary} />
@@ -1769,12 +1915,11 @@ export default function App() {
   function Mas() {
     return (
       <>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h1 style={h1Style}>Más</h1>
+        <PageHeader title="Más" subtitle="Logros y ajustes" right={
           <Btn kind="soft" small onClick={() => up((s) => { s.theme = s.theme === "dark" ? "light" : "dark"; return s; })}>
-            {state.theme === "dark" ? "☀️ Modo claro" : "🌙 Modo oscuro"}
+            {state.theme === "dark" ? "☀️ Claro" : "🌙 Oscuro"}
           </Btn>
-        </div>
+        } />
 
         <SectionTitle>Logros ({achDone}/{ACHIEVEMENTS.length})</SectionTitle>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
