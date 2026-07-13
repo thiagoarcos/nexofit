@@ -5,14 +5,27 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-    <meta name="theme-color" content="#0A6E5C" />
+    <meta name="theme-color" content="#2E5BFF" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="NEXO FIT" />
     <title>NEXO FIT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
     <style>
-      html, body, #root { margin: 0; padding: 0; height: 100%; background: #F4F5F8; }
-      body { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; overscroll-behavior-y: none; }
+      html, body, #root { margin: 0; padding: 0; height: 100%; background: #F7F8FA; }
+      body {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        overscroll-behavior-y: none;
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+      }
+      button { font-family: inherit; }
+      @media (prefers-color-scheme: dark) {
+        html, body, #root { background: #08090C; }
+      }
     </style>
   </head>
   <body>

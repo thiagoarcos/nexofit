@@ -8,24 +8,26 @@ import { useState, useEffect, useRef, useMemo } from "react";
 ======================================== */
 
 const LIGHT = {
-  bg: "#F4F5F8", card: "#FFFFFF", ink: "#14181F", sub: "#6B7280",
-  line: "#E7E9EF", soft: "#F6F7FA", input: "#FAFBFC",
-  primary: "#0A6E5C", primarySoft: "#E2F1EC", primaryInk: "#0B4A3F",
-  amber: "#F59E30", amberSoft: "#FDF0DC", amberInk: "#9A6414",
-  blue: "#3A7BD5", blueSoft: "#E4EEFB", red: "#E5484D",
-  navBg: "rgba(255,255,255,0.92)", body: "#DDE1E8",
+  bg: "#F7F8FA", card: "#FFFFFF", ink: "#0A0B10", sub: "#6B7280",
+  line: "#EDEEF1", soft: "#F1F2F5", input: "#FAFBFC",
+  primary: "#2E5BFF", primarySoft: "#EAF0FF", primaryInk: "#1E3FCC",
+  primaryGlow: "rgba(46,91,255,0.35)", accent: "#00D1FF",
+  amber: "#F59E0B", amberSoft: "#FEF3E2", amberInk: "#B45309",
+  blue: "#00BFFF", blueSoft: "#E5F7FF", red: "#EF4444",
+  navBg: "rgba(255,255,255,0.72)", body: "#E4E6EB",
 };
 const DARK = {
-  bg: "#0F1216", card: "#1A1F26", ink: "#F2F4F7", sub: "#9AA3AF",
-  line: "#2A313B", soft: "#232932", input: "#232932",
-  primary: "#2FB79A", primarySoft: "#173B33", primaryInk: "#9FE3D2",
-  amber: "#F5A94B", amberSoft: "#3A2C15", amberInk: "#F0C88A",
-  blue: "#5C97E8", blueSoft: "#1B2A40", red: "#F26A6E",
-  navBg: "rgba(20,24,30,0.92)", body: "#2E3640",
+  bg: "#08090C", card: "#101116", ink: "#F5F6F8", sub: "#8B8F9A",
+  line: "#1E2028", soft: "#16171D", input: "#16171D",
+  primary: "#4B7BFF", primarySoft: "#132048", primaryInk: "#A9C0FF",
+  primaryGlow: "rgba(75,123,255,0.45)", accent: "#22DAFF",
+  amber: "#FBBF24", amberSoft: "#3A2A0B", amberInk: "#FCD34D",
+  blue: "#22DAFF", blueSoft: "#0E2A3B", red: "#F87171",
+  navBg: "rgba(8,9,12,0.75)", body: "#1E2028",
 };
 const C = { ...LIGHT };
 
-const FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif';
+const FONT = '"Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif';
 const DAYS = ["D", "L", "M", "X", "J", "V", "S"];
 const DAY_NAMES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 const MONTHS = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
@@ -335,7 +337,12 @@ async function loadState() {
 
 function Card({ children, style, onClick }) {
   return (
-    <div onClick={onClick} style={{ background: C.card, borderRadius: 18, padding: 16, boxShadow: "0 1px 2px rgba(0,0,0,0.06)", ...style }}>
+    <div onClick={onClick} style={{
+      background: C.card, borderRadius: 18, padding: 16,
+      border: `1px solid ${C.line}`,
+      boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 4px 12px rgba(0,0,0,0.02)",
+      ...style,
+    }}>
       {children}
     </div>
   );
@@ -387,10 +394,15 @@ function Check({ done, onClick, color }) {
 function Btn({ children, onClick, kind = "primary", small, style }) {
   const base = {
     border: "none", borderRadius: 12, fontWeight: 700, cursor: "pointer", fontFamily: FONT,
-    padding: small ? "8px 12px" : "12px 16px", fontSize: small ? 13 : 15, whiteSpace: "nowrap",
+    padding: small ? "8px 14px" : "12px 18px", fontSize: small ? 13 : 15, whiteSpace: "nowrap",
+    letterSpacing: -0.1,
   };
   const kinds = {
-    primary: { background: C.primary, color: "#fff" },
+    primary: {
+      background: `linear-gradient(135deg, ${C.primary}, ${C.accent})`,
+      color: "#fff",
+      boxShadow: `0 4px 14px ${C.primaryGlow}`,
+    },
     soft: { background: C.primarySoft, color: C.theme === "dark" ? C.primaryInk : C.primary },
     ghost: { background: "transparent", color: C.sub },
     danger: { background: "transparent", color: C.red },
@@ -559,48 +571,79 @@ function PinGate({ theme, onUnlock }) {
     <div style={{
       fontFamily: FONT, background: PAL.bg, minHeight: "100vh", color: PAL.ink,
       display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-      padding: "20px", boxSizing: "border-box",
+      padding: "20px", boxSizing: "border-box", position: "relative", overflow: "hidden",
     }}>
-      <div style={{ fontSize: 44, marginBottom: 6 }}>🔒</div>
-      <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>NEXO FIT</div>
-      <div style={{ fontSize: 14, color: PAL.sub, fontWeight: 600, marginBottom: 30, textAlign: "center", maxWidth: 280 }}>
+      <div style={{
+        position: "absolute", top: "10%", left: "-20%", width: "80%", height: "60%",
+        background: `radial-gradient(circle, ${PAL.primaryGlow} 0%, transparent 70%)`,
+        pointerEvents: "none",
+      }} />
+      <div style={{
+        position: "absolute", bottom: "-10%", right: "-20%", width: "80%", height: "50%",
+        background: `radial-gradient(circle, ${PAL.primaryGlow} 0%, transparent 70%)`,
+        opacity: 0.6, pointerEvents: "none",
+      }} />
+
+      <div style={{
+        width: 64, height: 64, borderRadius: 18, marginBottom: 16,
+        background: `linear-gradient(135deg, ${PAL.primary}, ${PAL.accent})`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        boxShadow: `0 12px 32px ${PAL.primaryGlow}`, position: "relative",
+      }}>
+        <span style={{ fontSize: 30 }}>🔒</span>
+      </div>
+      <div style={{ fontSize: 26, fontWeight: 800, marginBottom: 4, letterSpacing: -0.5, position: "relative" }}>NEXO FIT</div>
+      <div style={{ fontSize: 14, color: PAL.sub, fontWeight: 600, marginBottom: 32, textAlign: "center", maxWidth: 280, position: "relative" }}>
         {title}
       </div>
 
-      <div style={{ display: "flex", gap: 14, marginBottom: 24 }}>
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} style={{
-            width: 16, height: 16, borderRadius: 8,
-            background: i < shownPin.length ? PAL.primary : "transparent",
-            border: `2px solid ${i < shownPin.length ? PAL.primary : PAL.line}`,
-            transition: "background 0.15s",
-          }} />
-        ))}
+      <div style={{ display: "flex", gap: 16, marginBottom: 28, position: "relative" }}>
+        {[0, 1, 2, 3].map((i) => {
+          const filled = i < shownPin.length;
+          return (
+            <div key={i} style={{
+              width: 18, height: 18, borderRadius: 10,
+              background: filled ? `linear-gradient(135deg, ${PAL.primary}, ${PAL.accent})` : "transparent",
+              border: `2px solid ${filled ? "transparent" : PAL.line}`,
+              boxShadow: filled ? `0 4px 12px ${PAL.primaryGlow}` : "none",
+              transition: "all 0.2s",
+            }} />
+          );
+        })}
       </div>
 
       {error && (
-        <div style={{ color: PAL.red, fontSize: 14, fontWeight: 700, marginBottom: 16, minHeight: 20 }}>
+        <div style={{ color: PAL.red, fontSize: 14, fontWeight: 700, marginBottom: 16, minHeight: 20, position: "relative" }}>
           {error}
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 74px)", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 74px)", gap: 14, position: "relative" }}>
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
           <button key={n} onClick={() => handleKey(String(n))} style={{
-            width: 74, height: 74, borderRadius: 37, border: "none",
-            background: PAL.card, color: PAL.ink, fontSize: 28, fontWeight: 500,
-            fontFamily: FONT, cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
-          }}>{n}</button>
+            width: 74, height: 74, borderRadius: 22, border: `1px solid ${PAL.line}`,
+            background: PAL.card, color: PAL.ink, fontSize: 26, fontWeight: 600,
+            fontFamily: FONT, cursor: "pointer",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)",
+            transition: "transform 0.1s",
+          }}
+          onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.95)"}
+          onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
+          onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+          onTouchStart={(e) => e.currentTarget.style.transform = "scale(0.95)"}
+          onTouchEnd={(e) => e.currentTarget.style.transform = "scale(1)"}
+          >{n}</button>
         ))}
         <div />
         <button onClick={() => handleKey("0")} style={{
-          width: 74, height: 74, borderRadius: 37, border: "none",
-          background: PAL.card, color: PAL.ink, fontSize: 28, fontWeight: 500,
-          fontFamily: FONT, cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
+          width: 74, height: 74, borderRadius: 22, border: `1px solid ${PAL.line}`,
+          background: PAL.card, color: PAL.ink, fontSize: 26, fontWeight: 600,
+          fontFamily: FONT, cursor: "pointer",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04)",
         }}>0</button>
         <button onClick={() => handleKey("del")} style={{
-          width: 74, height: 74, borderRadius: 37, border: "none",
-          background: "transparent", color: PAL.sub, fontSize: 20, fontWeight: 700,
+          width: 74, height: 74, borderRadius: 22, border: "none",
+          background: "transparent", color: PAL.sub, fontSize: 22, fontWeight: 700,
           fontFamily: FONT, cursor: "pointer",
         }}>⌫</button>
       </div>
@@ -637,6 +680,11 @@ export default function App() {
     } catch (e) { return false; }
   });
   const [showPinSetup, setShowPinSetup] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [installed, setInstalled] = useState(false);
+  const [installHidden, setInstallHidden] = useState(() => {
+    try { return localStorage.getItem("nexofit-install-hidden") === "1"; } catch (e) { return false; }
+  });
   const [tab, setTab] = useState("hoy");
   const [banner, setBanner] = useState(null);
   const [editHabit, setEditHabit] = useState(null);
@@ -680,6 +728,48 @@ export default function App() {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
     }, 500);
   }, [state, loaded]);
+
+  useEffect(() => {
+    // Detectar si la app ya está instalada como PWA
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone === true;
+    if (isStandalone) setInstalled(true);
+
+    // Chrome / Android: capturar el evento beforeinstallprompt
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+
+    // Cuando el usuario efectivamente instala la app
+    const installed = () => {
+      setInstalled(true);
+      setInstallPrompt(null);
+    };
+    window.addEventListener("appinstalled", installed);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("appinstalled", installed);
+    };
+  }, []);
+
+  const triggerInstall = async () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      const { outcome } = await installPrompt.userChoice;
+      if (outcome === "accepted") {
+        setInstalled(true);
+        setInstallPrompt(null);
+      }
+    } else {
+      // Fallback (iOS Safari no soporta beforeinstallprompt)
+      setBanner("En iPhone: tocá Compartir ⬆️ y elegí 'Añadir a pantalla de inicio'");
+      setTimeout(() => setBanner(null), 8000);
+    }
+  };
 
   useEffect(() => {
     const check = () => {
@@ -810,37 +900,87 @@ export default function App() {
 
   /* ============ HOY ============ */
   function Hoy() {
+    const showInstall = !installed && !installHidden;
     return (
       <>
         <div style={{ padding: "4px 4px 0", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: C.primary, textTransform: "uppercase", letterSpacing: 0.8 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: C.primary, textTransform: "uppercase", letterSpacing: 1.2 }}>
               {DAY_NAMES[dow]}, {todayDate.getDate()} de {MONTHS[todayDate.getMonth()]}
             </div>
-            <h1 style={{ margin: "2px 0 14px", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>Hoy</h1>
+            <h1 style={{ margin: "4px 0 14px", fontSize: 34, fontWeight: 800, letterSpacing: -0.8, lineHeight: 1 }}>Hoy</h1>
           </div>
           <Btn kind="soft" small onClick={() => up((s) => { s.theme = s.theme === "dark" ? "light" : "dark"; return s; })}>
             {state.theme === "dark" ? "☀️" : "🌙"}
           </Btn>
         </div>
 
-        <Card style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <Ring pct={dayPct}>
-            <div style={{ fontSize: 26, fontWeight: 800 }}>{Math.round(dayPct * 100)}%</div>
-            <div style={{ fontSize: 11, color: C.sub, fontWeight: 600 }}>del día</div>
-          </Ring>
-          <div style={{ flex: 1, display: "grid", gap: 8 }}>
-            <MiniStat label="Hábitos" value={`${habitsDone}/${habitsToday.length}`} color={C.primary} />
-            <MiniStat label="Gym" value={exTotal ? `${exDone}/${exTotal}` : "Descanso"} color={C.amber} />
-            <MiniStat label="Agua" value={`${water}/${state.goals.water}`} color={C.blue} />
+        {showInstall && (
+          <div style={{
+            position: "relative", overflow: "hidden",
+            background: `linear-gradient(135deg, ${C.primary} 0%, ${C.accent} 100%)`,
+            borderRadius: 18, padding: "14px 16px", marginBottom: 12,
+            display: "flex", alignItems: "center", gap: 12,
+            boxShadow: `0 8px 24px ${C.primaryGlow}`,
+          }}>
+            <div style={{ fontSize: 24 }}>📲</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ color: "#fff", fontWeight: 800, fontSize: 14.5, letterSpacing: -0.2 }}>Instalar NEXO FIT</div>
+              <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: 500 }}>Como app en tu pantalla de inicio</div>
+            </div>
+            <button onClick={triggerInstall} style={{
+              background: "#fff", color: C.primary, border: "none", borderRadius: 10,
+              padding: "8px 14px", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: FONT,
+            }}>Instalar</button>
+            <button onClick={() => {
+              try { localStorage.setItem("nexofit-install-hidden", "1"); } catch (e) {}
+              setInstallHidden(true);
+            }} style={{
+              background: "transparent", border: "none", color: "rgba(255,255,255,0.7)",
+              fontSize: 16, cursor: "pointer", padding: 4, marginLeft: -4,
+            }} aria-label="Cerrar">✕</button>
           </div>
-        </Card>
+        )}
+
+        <div style={{
+          position: "relative", overflow: "hidden",
+          background: C.card, borderRadius: 22, padding: "22px 20px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.03)",
+          border: `1px solid ${C.line}`,
+        }}>
+          <div style={{
+            position: "absolute", top: -60, right: -60, width: 180, height: 180,
+            background: `radial-gradient(circle, ${C.primaryGlow} 0%, transparent 70%)`,
+            pointerEvents: "none",
+          }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 20, position: "relative" }}>
+            <Ring pct={dayPct} size={128} stroke={13}>
+              <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -0.5 }}>{Math.round(dayPct * 100)}<span style={{ fontSize: 15, color: C.sub }}>%</span></div>
+              <div style={{ fontSize: 10.5, color: C.sub, fontWeight: 700, letterSpacing: 0.6, textTransform: "uppercase" }}>del día</div>
+            </Ring>
+            <div style={{ flex: 1, display: "grid", gap: 10 }}>
+              <MiniStat label="Hábitos" value={`${habitsDone}/${habitsToday.length}`} color={C.primary} />
+              <MiniStat label="Gym" value={exTotal ? `${exDone}/${exTotal}` : "Descanso"} color={C.accent} />
+              <MiniStat label="Agua" value={`${water}/${state.goals.water}`} color={C.blue} />
+            </div>
+          </div>
+        </div>
 
         <SectionTitle>Tip del día</SectionTitle>
-        <Card style={{ background: C.primarySoft, display: "flex", gap: 12 }}>
-          <div style={{ fontSize: 22 }}>💡</div>
-          <div style={{ fontSize: 14.5, lineHeight: 1.45, color: C.primaryInk, fontWeight: 500 }}>{tip}</div>
-        </Card>
+        <div style={{
+          borderRadius: 18, padding: "16px 18px",
+          background: `linear-gradient(135deg, ${C.primarySoft} 0%, ${C.blueSoft} 100%)`,
+          border: `1px solid ${C.line}`,
+          display: "flex", gap: 14, alignItems: "flex-start",
+        }}>
+          <div style={{
+            width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+            background: `linear-gradient(135deg, ${C.primary}, ${C.accent})`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: `0 4px 12px ${C.primaryGlow}`, fontSize: 17,
+          }}>💡</div>
+          <div style={{ fontSize: 14, lineHeight: 1.5, color: C.primaryInk, fontWeight: 500 }}>{tip}</div>
+        </div>
 
         <SectionTitle>Hábitos de hoy</SectionTitle>
         <Card style={{ padding: 8 }}>
@@ -1893,7 +2033,7 @@ export default function App() {
         </div>
       )}
 
-      <div style={{ maxWidth: 520, margin: "0 auto", padding: "16px 14px 96px" }}>
+      <div style={{ maxWidth: 520, margin: "0 auto", padding: "16px 14px 120px" }}>
         {tab === "hoy" && Hoy()}
         {tab === "habitos" && Habitos()}
         {tab === "gym" && Gym()}
@@ -1902,21 +2042,31 @@ export default function App() {
       </div>
 
       <nav style={{
-        position: "fixed", bottom: 0, left: 0, right: 0,
-        background: C.navBg, backdropFilter: "blur(12px)",
-        borderTop: `1px solid ${C.line}`, display: "flex", justifyContent: "space-around",
-        padding: "8px 6px calc(10px + env(safe-area-inset-bottom))",
+        position: "fixed", bottom: "calc(14px + env(safe-area-inset-bottom))",
+        left: 12, right: 12, zIndex: 40,
+        maxWidth: 500, margin: "0 auto",
+        background: C.navBg, backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        border: `1px solid ${C.line}`,
+        borderRadius: 22, display: "flex", justifyContent: "space-around",
+        padding: "8px 6px", boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
       }}>
-        {tabs.map((t) => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{
-            background: "none", border: "none", cursor: "pointer", fontFamily: FONT,
-            display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-            color: tab === t.id ? C.primary : C.sub, minWidth: 56,
-          }}>
-            <span style={{ fontSize: 20, filter: tab === t.id ? "none" : "grayscale(0.6)" }}>{t.icon}</span>
-            <span style={{ fontSize: 10.5, fontWeight: 700 }}>{t.label}</span>
-          </button>
-        ))}
+        {tabs.map((t) => {
+          const active = tab === t.id;
+          return (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{
+              background: active ? C.primarySoft : "transparent",
+              border: "none", cursor: "pointer", fontFamily: FONT,
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+              color: active ? C.primary : C.sub, minWidth: 56,
+              borderRadius: 14, padding: "8px 10px",
+              transition: "background 0.2s, color 0.2s",
+            }}>
+              <span style={{ fontSize: 18, filter: active ? "none" : "grayscale(0.4) opacity(0.85)" }}>{t.icon}</span>
+              <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.2 }}>{t.label}</span>
+            </button>
+          );
+        })}
       </nav>
     </div>
   );
