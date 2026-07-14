@@ -329,6 +329,61 @@ function analyzeLift(ex, weight, reps, bodyWeight) {
 
 const tonnage = (ex) => (ex.sets || []).reduce((a, st) => a + (Number(st.weight) || 0) * (Number(st.reps) || 0), 0);
 
+/* ---------- importar rutina desde .xlsx (formato tipo planilla de coach) ----------
+   Hojas "SEMANA (N)" con bloques "Día N" seguidos de una fila de encabezados
+   y filas de ejercicio: col B=nombre, C=intensidad, D=descanso, luego 6 series
+   de 3 columnas (peso, reps, rir) empezando en la columna E.               ---- */
+async function parseRoutineWorkbook(file) {
+  const XLSX = await import("xlsx");
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: "array" });
+  const dayHeaderRe = /^d[ií]a\s*(\d+)/i;
+  let sheetNames = wb.SheetNames.filter((n) => /semana/i.test(n));
+  if (sheetNames.length === 0) sheetNames = wb.SheetNames;
+
+  const weeks = sheetNames.map((name) => {
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: false, defval: "" });
+    const daysByNum = {};
+    let current = null;
+    rows.forEach((row) => {
+      const b = String(row[1] || "").trim();
+      const headerMatch = b.match(dayHeaderRe);
+      if (headerMatch) {
+        current = { notes: "", exercises: [] };
+        daysByNum[parseInt(headerMatch[1], 10)] = current;
+        return;
+      }
+      if (!current) return;
+      const exName = b;
+      if (!exName || /^ejercicio$/i.test(exName)) return;
+      const sets = [];
+      for (let s = 0; s < 6; s++) {
+        const base = 4 + s * 3;
+        sets.push({
+          weight: String(row[base] ?? "").trim(),
+          reps: String(row[base + 1] ?? "").trim(),
+          rir: String(row[base + 2] ?? "").trim(),
+        });
+      }
+      current.exercises.push({
+        id: uid(), name: exName,
+        intensity: String(row[2] || "").trim(),
+        rest: String(row[3] || "").trim(),
+        sets,
+      });
+    });
+    const maxDay = Math.max(0, ...Object.keys(daysByNum).map(Number));
+    const days = [];
+    for (let d = 1; d <= maxDay; d++) {
+      const found = daysByNum[d];
+      days.push({ name: "", notes: found ? found.notes : "", exercises: found ? found.exercises : [] });
+    }
+    return { days };
+  });
+
+  return { weeks };
+}
+
 /* ---------- estado inicial ---------- */
 const initialState = {
   theme: "light",
@@ -834,6 +889,8 @@ export default function App() {
   const [gymView, setGymView] = useState("rutina");
   const [progWeek, setProgWeek] = useState(0);
   const [progDay, setProgDay] = useState(0);
+  const [importingRoutine, setImportingRoutine] = useState(false);
+  const fileImportRef = useRef(null);
   const [mapSide, setMapSide] = useState("front");
   const [muscle, setMuscle] = useState(null);
   const [openLift, setOpenLift] = useState(null);
@@ -1468,10 +1525,37 @@ export default function App() {
 
   function Programa() {
     const progW = state.program.weeks[progWeek];
-    const day = progW.days[progDay];
-    const dayTonnage = day.exercises.reduce((a, e) => a + tonnage(e), 0);
-    const prevDay = progWeek > 0 ? state.program.weeks[progWeek - 1].days[progDay] : null;
+    const day = progW ? progW.days[progDay] : null;
+    const dayTonnage = day ? day.exercises.reduce((a, e) => a + tonnage(e), 0) : 0;
+    const prevDay = day && progWeek > 0 ? state.program.weeks[progWeek - 1].days[progDay] : null;
     const canCopyPrev = !!prevDay && prevDay.exercises.length > 0 && day.exercises.length === 0;
+
+    const handleImportFile = async (ev) => {
+      const file = ev.target.files && ev.target.files[0];
+      ev.target.value = "";
+      if (!file) return;
+      setImportingRoutine(true);
+      try {
+        const parsed = await parseRoutineWorkbook(file);
+        const totalEx = parsed.weeks.reduce((a, w) => a + w.days.reduce((b, d) => b + d.exercises.length, 0), 0);
+        if (totalEx === 0) {
+          setBanner("No encontré ejercicios en ese archivo. ¿Tiene el formato de tu coach (hojas 'SEMANA' con bloques 'Día N')?");
+          setTimeout(() => setBanner(null), 6000);
+          return;
+        }
+        if (!confirm(`Encontré ${parsed.weeks.length} semana(s) y ${totalEx} ejercicio(s). Esto va a reemplazar tu Programa actual. ¿Importar?`)) return;
+        up((s) => { s.program = parsed; return s; });
+        setProgWeek(0);
+        setProgDay(0);
+        setBanner("Rutina importada ✅");
+        setTimeout(() => setBanner(null), 4000);
+      } catch {
+        setBanner("No pude leer ese archivo. ¿Es un .xlsx válido?");
+        setTimeout(() => setBanner(null), 5000);
+      } finally {
+        setImportingRoutine(false);
+      }
+    };
 
     const updDay = (fn) => up((s) => { fn(s.program.weeks[progWeek].days[progDay]); return s; });
 
@@ -1503,128 +1587,152 @@ export default function App() {
 
     return (
       <>
-        <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-          {state.program.weeks.map((w, i) => {
-            const active = progWeek === i;
-            const hasEx = w.days.some((d) => d.exercises.length > 0);
-            return (
-              <button key={i} onClick={() => { setProgWeek(i); setProgDay(0); }} style={{
-                flex: 1, padding: "10px 0 8px", borderRadius: 12, cursor: "pointer",
-                fontWeight: 800, fontSize: 13, fontFamily: FONT,
-                border: `1px solid ${active ? "transparent" : C.line}`,
-                background: active ? `linear-gradient(135deg, ${C.primary}, ${C.accent})` : C.card,
-                color: active ? "#fff" : hasEx ? C.ink : C.sub,
-                boxShadow: active ? `0 4px 12px ${C.primaryGlow}` : "none",
-                display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
-                transition: "all 0.15s",
-              }}>
-                S{i + 1}
-                <span style={{ width: 4, height: 4, borderRadius: 2, background: active ? "rgba(255,255,255,0.9)" : hasEx ? C.primary : "transparent" }} />
-              </button>
-            );
-          })}
-        </div>
-
-        <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-          {progW.days.map((d, i) => {
-            const active = progDay === i;
-            const hasEx = d.exercises.length > 0;
-            return (
-              <button key={i} onClick={() => setProgDay(i)} style={{
-                flex: 1, padding: "10px 0 8px", borderRadius: 12, cursor: "pointer",
-                fontWeight: 800, fontSize: 12.5, fontFamily: FONT,
-                border: `1px solid ${active ? "transparent" : C.line}`,
-                background: active ? `linear-gradient(135deg, ${C.primary}, ${C.accent})` : C.card,
-                color: active ? "#fff" : hasEx ? C.ink : C.sub,
-                boxShadow: active ? `0 4px 12px ${C.primaryGlow}` : "none",
-                display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
-                transition: "all 0.15s",
-              }}>
-                {i + 1}
-                <span style={{ width: 4, height: 4, borderRadius: 2, background: active ? "rgba(255,255,255,0.9)" : hasEx ? C.primary : "transparent" }} />
-              </button>
-            );
-          })}
-        </div>
-
-        <Card>
-          <Input placeholder={`Nombre del Día ${progDay + 1} (ej: Piernas)`} value={day.name}
-            onChange={(e) => updDay((d) => { d.name = e.target.value; })}
-            style={{ fontWeight: 700, fontSize: 17, marginBottom: 10 }} />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <div style={{ fontSize: 13, color: C.sub, fontWeight: 700 }}>Tonelaje total del día</div>
-            <div style={{ fontSize: 18, fontWeight: 800 }}>{dayTonnage.toLocaleString("es-AR")} kg</div>
+        <Card style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+            <div style={{ fontSize: 13, color: C.sub, fontWeight: 600, lineHeight: 1.4 }}>
+              📥 Importá el Excel que te pasa tu coach y se carga toda la rutina (semanas, días y ejercicios) automáticamente.
+            </div>
+            <Btn small onClick={() => fileImportRef.current && fileImportRef.current.click()} style={{ flexShrink: 0 }}>
+              {importingRoutine ? "Leyendo…" : "Importar .xlsx"}
+            </Btn>
           </div>
-          <div style={lblStyle}>OBSERVACIONES Y NOTAS</div>
-          <textarea
-            placeholder="Sensaciones, ajustes, lo que quieras recordar de esta sesión…"
-            value={day.notes}
-            onChange={(e) => updDay((d) => { d.notes = e.target.value; })}
-            style={{
-              width: "100%", boxSizing: "border-box", minHeight: 60, resize: "vertical",
-              border: `1.5px solid ${C.line}`, borderRadius: 12, padding: 10,
-              fontFamily: FONT, fontSize: 14, background: C.input, color: C.ink, outline: "none",
-            }} />
+          <input ref={fileImportRef} type="file" accept=".xlsx" style={{ display: "none" }} onChange={handleImportFile} />
         </Card>
 
-        {canCopyPrev && (
-          <Card style={{ marginTop: 10, background: C.primarySoft }}>
-            <div style={{ fontSize: 13.5, color: C.theme === "dark" ? C.primaryInk : C.primary, fontWeight: 600, marginBottom: 10, lineHeight: 1.4 }}>
-              💡 La Semana {progWeek} ya tiene ejercicios cargados para este día. ¿Copiamos la misma estructura (sin los pesos) para seguir la progresión?
+        {!progW && <Card><Empty text="Todavía no hay semanas cargadas. Importá tu rutina o agregá ejercicios manualmente." /></Card>}
+
+        {progW && (
+          <>
+            <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+              {state.program.weeks.map((w, i) => {
+                const active = progWeek === i;
+                const hasEx = w.days.some((d) => d.exercises.length > 0);
+                return (
+                  <button key={i} onClick={() => { setProgWeek(i); setProgDay(0); }} style={{
+                    flex: 1, padding: "10px 0 8px", borderRadius: 12, cursor: "pointer",
+                    fontWeight: 800, fontSize: 13, fontFamily: FONT,
+                    border: `1px solid ${active ? "transparent" : C.line}`,
+                    background: active ? `linear-gradient(135deg, ${C.primary}, ${C.accent})` : C.card,
+                    color: active ? "#fff" : hasEx ? C.ink : C.sub,
+                    boxShadow: active ? `0 4px 12px ${C.primaryGlow}` : "none",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                    transition: "all 0.15s",
+                  }}>
+                    S{i + 1}
+                    <span style={{ width: 4, height: 4, borderRadius: 2, background: active ? "rgba(255,255,255,0.9)" : hasEx ? C.primary : "transparent" }} />
+                  </button>
+                );
+              })}
             </div>
-            <Btn small onClick={copyPrevWeek}>Copiar ejercicios de Semana {progWeek}</Btn>
-          </Card>
+
+            <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+              {progW.days.map((d, i) => {
+                const active = progDay === i;
+                const hasEx = d.exercises.length > 0;
+                return (
+                  <button key={i} onClick={() => setProgDay(i)} style={{
+                    flex: "1 1 0", minWidth: 34, padding: "10px 0 8px", borderRadius: 12, cursor: "pointer",
+                    fontWeight: 800, fontSize: 12.5, fontFamily: FONT,
+                    border: `1px solid ${active ? "transparent" : C.line}`,
+                    background: active ? `linear-gradient(135deg, ${C.primary}, ${C.accent})` : C.card,
+                    color: active ? "#fff" : hasEx ? C.ink : C.sub,
+                    boxShadow: active ? `0 4px 12px ${C.primaryGlow}` : "none",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                    transition: "all 0.15s",
+                  }}>
+                    {i + 1}
+                    <span style={{ width: 4, height: 4, borderRadius: 2, background: active ? "rgba(255,255,255,0.9)" : hasEx ? C.primary : "transparent" }} />
+                  </button>
+                );
+              })}
+            </div>
+
+            {!day && <Card><Empty text="Esta semana no tiene días cargados." /></Card>}
+
+            {day && (
+              <>
+                <Card>
+                  <Input placeholder={`Nombre del Día ${progDay + 1} (ej: Piernas)`} value={day.name}
+                    onChange={(e) => updDay((d) => { d.name = e.target.value; })}
+                    style={{ fontWeight: 700, fontSize: 17, marginBottom: 10 }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                    <div style={{ fontSize: 13, color: C.sub, fontWeight: 700 }}>Tonelaje total del día</div>
+                    <div style={{ fontSize: 18, fontWeight: 800 }}>{dayTonnage.toLocaleString("es-AR")} kg</div>
+                  </div>
+                  <div style={lblStyle}>OBSERVACIONES Y NOTAS</div>
+                  <textarea
+                    placeholder="Sensaciones, ajustes, lo que quieras recordar de esta sesión…"
+                    value={day.notes}
+                    onChange={(e) => updDay((d) => { d.notes = e.target.value; })}
+                    style={{
+                      width: "100%", boxSizing: "border-box", minHeight: 60, resize: "vertical",
+                      border: `1.5px solid ${C.line}`, borderRadius: 12, padding: 10,
+                      fontFamily: FONT, fontSize: 14, background: C.input, color: C.ink, outline: "none",
+                    }} />
+                </Card>
+
+                {canCopyPrev && (
+                  <Card style={{ marginTop: 10, background: C.primarySoft }}>
+                    <div style={{ fontSize: 13.5, color: C.theme === "dark" ? C.primaryInk : C.primary, fontWeight: 600, marginBottom: 10, lineHeight: 1.4 }}>
+                      💡 La Semana {progWeek} ya tiene ejercicios cargados para este día. ¿Copiamos la misma estructura (sin los pesos) para seguir la progresión?
+                    </div>
+                    <Btn small onClick={copyPrevWeek}>Copiar ejercicios de Semana {progWeek}</Btn>
+                  </Card>
+                )}
+
+                <SectionTitle>Ejercicios</SectionTitle>
+                {day.exercises.length === 0 && <Card><Empty text="Todavía no cargaste ejercicios para este día." /></Card>}
+                {day.exercises.map((e) => (
+                  <Card key={e.id} style={{ marginBottom: 8 }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                      <Input placeholder="Nombre del ejercicio (ej: Sentadilla 3x5)" value={e.name}
+                        onChange={(ev) => editExercise(e.id, "name", ev.target.value)}
+                        style={{ fontWeight: 700 }} />
+                      <Btn kind="danger" small onClick={() => removeExercise(e.id)}>✕</Btn>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={lblStyle}>Intensidad (RIR/RPE)</div>
+                        <Input placeholder="rir 1 - @8-9" value={e.intensity} onChange={(ev) => editExercise(e.id, "intensity", ev.target.value)} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={lblStyle}>Descanso</div>
+                        <Input placeholder="3'-4'" value={e.rest} onChange={(ev) => editExercise(e.id, "rest", ev.target.value)} />
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: 10 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 1fr", gap: 6, marginBottom: 4 }}>
+                        <div />
+                        <div style={lblStyle}>Peso (kg)</div>
+                        <div style={lblStyle}>Reps</div>
+                        <div style={lblStyle}>RIR</div>
+                      </div>
+                      {e.sets.map((st, i) => (
+                        <div key={i} style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 1fr", gap: 6, alignItems: "center", marginBottom: 6 }}>
+                          <div style={{ fontSize: 12, fontWeight: 800, color: C.sub, textAlign: "center" }}>{i + 1}</div>
+                          <Input type="number" value={st.weight} onChange={(ev) => editSet(e.id, i, "weight", ev.target.value)} />
+                          <Input type="number" value={st.reps} onChange={(ev) => editSet(e.id, i, "reps", ev.target.value)} />
+                          <Input type="number" value={st.rir} onChange={(ev) => editSet(e.id, i, "rir", ev.target.value)} />
+                        </div>
+                      ))}
+                      <div style={{ display: "flex", gap: 6, marginTop: 4, alignItems: "center" }}>
+                        <Btn kind="soft" small onClick={() => addSet(e.id)} style={{ opacity: e.sets.length >= 6 ? 0.4 : 1 }}>+ Serie</Btn>
+                        <Btn kind="ghost" small onClick={() => removeSet(e.id)} style={{ opacity: e.sets.length <= 1 ? 0.4 : 1 }}>－ Serie</Btn>
+                        <div style={{ flex: 1 }} />
+                        <div style={{ fontSize: 12.5, color: C.sub, fontWeight: 700 }}>
+                          Tonelaje: <span style={{ color: C.ink, fontWeight: 800 }}>{tonnage(e).toLocaleString("es-AR")} kg</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+
+                <Btn onClick={addExercise} style={{ width: "100%" }}>＋ Agregar ejercicio</Btn>
+              </>
+            )}
+          </>
         )}
-
-        <SectionTitle>Ejercicios</SectionTitle>
-        {day.exercises.length === 0 && <Card><Empty text="Todavía no cargaste ejercicios para este día." /></Card>}
-        {day.exercises.map((e) => (
-          <Card key={e.id} style={{ marginBottom: 8 }}>
-            <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-              <Input placeholder="Nombre del ejercicio (ej: Sentadilla 3x5)" value={e.name}
-                onChange={(ev) => editExercise(e.id, "name", ev.target.value)}
-                style={{ fontWeight: 700 }} />
-              <Btn kind="danger" small onClick={() => removeExercise(e.id)}>✕</Btn>
-            </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-              <div style={{ flex: 1 }}>
-                <div style={lblStyle}>Intensidad (RIR/RPE)</div>
-                <Input placeholder="rir 1 - @8-9" value={e.intensity} onChange={(ev) => editExercise(e.id, "intensity", ev.target.value)} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={lblStyle}>Descanso</div>
-                <Input placeholder="3'-4'" value={e.rest} onChange={(ev) => editExercise(e.id, "rest", ev.target.value)} />
-              </div>
-            </div>
-
-            <div style={{ marginTop: 10 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 1fr", gap: 6, marginBottom: 4 }}>
-                <div />
-                <div style={lblStyle}>Peso (kg)</div>
-                <div style={lblStyle}>Reps</div>
-                <div style={lblStyle}>RIR</div>
-              </div>
-              {e.sets.map((st, i) => (
-                <div key={i} style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 1fr", gap: 6, alignItems: "center", marginBottom: 6 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: C.sub, textAlign: "center" }}>{i + 1}</div>
-                  <Input type="number" value={st.weight} onChange={(ev) => editSet(e.id, i, "weight", ev.target.value)} />
-                  <Input type="number" value={st.reps} onChange={(ev) => editSet(e.id, i, "reps", ev.target.value)} />
-                  <Input type="number" value={st.rir} onChange={(ev) => editSet(e.id, i, "rir", ev.target.value)} />
-                </div>
-              ))}
-              <div style={{ display: "flex", gap: 6, marginTop: 4, alignItems: "center" }}>
-                <Btn kind="soft" small onClick={() => addSet(e.id)} style={{ opacity: e.sets.length >= 6 ? 0.4 : 1 }}>+ Serie</Btn>
-                <Btn kind="ghost" small onClick={() => removeSet(e.id)} style={{ opacity: e.sets.length <= 1 ? 0.4 : 1 }}>－ Serie</Btn>
-                <div style={{ flex: 1 }} />
-                <div style={{ fontSize: 12.5, color: C.sub, fontWeight: 700 }}>
-                  Tonelaje: <span style={{ color: C.ink, fontWeight: 800 }}>{tonnage(e).toLocaleString("es-AR")} kg</span>
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-
-        <Btn onClick={addExercise} style={{ width: "100%" }}>＋ Agregar ejercicio</Btn>
       </>
     );
   }
