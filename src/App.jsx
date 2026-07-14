@@ -327,6 +327,8 @@ function analyzeLift(ex, weight, reps, bodyWeight) {
   return { e1rm, level, nextTarget, advice, tone };
 }
 
+const tonnage = (ex) => (ex.sets || []).reduce((a, st) => a + (Number(st.weight) || 0) * (Number(st.reps) || 0), 0);
+
 /* ---------- estado inicial ---------- */
 const initialState = {
   theme: "light",
@@ -363,6 +365,11 @@ const initialState = {
   workoutLog: {},
   sessionLog: {},
   exerciseHistory: {},
+  program: {
+    weeks: Array.from({ length: 5 }, () => ({
+      days: Array.from({ length: 7 }, () => ({ name: "", notes: "", exercises: [] })),
+    })),
+  },
   meals: {},
   mealLibrary: [],
   water: {},
@@ -550,17 +557,17 @@ function BodyMap({ side, selected, onSelect }) {
       <g fill={C.body}>
         {/* cabeza y cuello */}
         <ellipse cx="100" cy="24" rx="14" ry="16" />
-        <path d="M92 38 h16 l3 15 h-22 z" />
-        {/* torso en V: hombros anchos → cintura fina → cadera */}
-        <path d="M58 58 Q100 46 142 58 L136 96 Q129 132 123 152 L123 170 Q112 178 100 178 Q88 178 77 170 L77 152 Q71 132 64 96 Z" />
+        <path d="M90 37 Q100 43 110 37 Q113 47 110 53 Q100 58 90 53 Q87 47 90 37 Z" />
+        {/* torso en V: hombros anchos → cintura fina → cadera, siempre en curva */}
+        <path d="M58 58 Q100 46 142 58 Q140 78 136 96 Q131 116 123 152 Q124 162 123 170 Q112 178 100 178 Q88 178 77 170 Q76 162 77 152 Q69 116 64 96 Q60 78 58 58 Z" />
         {/* brazo izquierdo con deltoides y taper */}
-        <path d="M60 60 Q45 65 42 82 Q39 104 42 124 Q42 144 38 162 Q36 180 34 196 L46 199 Q49 182 51 165 Q54 146 53 128 Q55 106 56 88 Q57 70 60 60 Z" />
+        <path d="M60 60 Q45 65 42 82 Q39 104 42 124 Q42 144 38 162 Q36 180 34 196 Q40 200 46 199 Q49 182 51 165 Q54 146 53 128 Q55 106 56 88 Q57 70 60 60 Z" />
         {/* brazo derecho */}
-        <path d="M140 60 Q155 65 158 82 Q161 104 158 124 Q158 144 162 162 Q164 180 166 196 L154 199 Q151 182 149 165 Q146 146 147 128 Q145 106 144 88 Q143 70 140 60 Z" />
+        <path d="M140 60 Q155 65 158 82 Q161 104 158 124 Q158 144 162 162 Q164 180 166 196 Q160 200 154 199 Q151 182 149 165 Q146 146 147 128 Q145 106 144 88 Q143 70 140 60 Z" />
         {/* pierna izquierda: muslo → rodilla → gemelo → tobillo */}
-        <path d="M77 172 Q69 202 69 234 Q69 264 76 290 L74 306 Q71 336 76 364 Q78 388 78 410 L93 410 Q94 388 93 366 Q95 338 92 308 L96 290 Q101 262 99 234 Q98 204 100 178 Z" />
+        <path d="M77 172 Q69 202 69 234 Q69 264 76 290 Q73 298 74 306 Q71 336 76 364 Q78 388 78 410 Q85 412 93 410 Q94 388 93 366 Q95 338 92 308 Q94 299 96 290 Q101 262 99 234 Q98 204 100 178 Z" />
         {/* pierna derecha */}
-        <path d="M123 172 Q131 202 131 234 Q131 264 124 290 L126 306 Q129 336 124 364 Q122 388 122 410 L107 410 Q106 388 107 366 Q105 338 108 308 L104 290 Q99 262 101 234 Q102 204 100 178 Z" />
+        <path d="M123 172 Q131 202 131 234 Q131 264 124 290 Q127 298 126 306 Q129 336 124 364 Q122 388 122 410 Q115 412 107 410 Q106 388 107 366 Q105 338 108 308 Q106 299 104 290 Q99 262 101 234 Q102 204 100 178 Z" />
       </g>
 
       {side === "front" ? (
@@ -579,7 +586,7 @@ function BodyMap({ side, selected, onSelect }) {
           <ellipse cx="158" cy="162" rx="7" ry="21" transform="rotate(-4 158 162)" {...P("antebrazos")} />
           {/* abdomen con six-pack */}
           <g {...P("abdomen")}>
-            <rect x="86" y="110" width="28" height="54" rx="9" />
+            <path d="M87 118 Q86 109 100 109 Q114 109 113 118 Q116 136 113 152 Q112 164 100 166 Q88 164 87 152 Q84 136 87 118 Z" />
           </g>
           <g stroke={C.card} strokeWidth="1.4" opacity={sel("abdomen") ? 0.5 : 0.35} pointerEvents="none">
             <line x1="100" y1="112" x2="100" y2="162" />
@@ -598,13 +605,13 @@ function BodyMap({ side, selected, onSelect }) {
         </g>
       ) : (
         <g>
-          {/* trapecio: rombo superior */}
-          <path d="M100 50 L128 64 L114 96 Q100 88 86 96 L72 64 Z" {...P("trapecio")} />
+          {/* trapecio */}
+          <path d="M100 48 Q128 54 128 66 Q122 84 114 96 Q100 88 86 96 Q78 84 72 66 Q72 54 100 48 Z" {...P("trapecio")} />
           {/* hombros posteriores */}
           <ellipse cx="57" cy="66" rx="12" ry="10" {...P("hombros")} />
           <ellipse cx="143" cy="66" rx="12" ry="10" {...P("hombros")} />
           {/* dorsales en V */}
-          <path d="M72 94 L128 94 L121 124 Q100 148 79 124 Z" {...P("espalda")} />
+          <path d="M72 94 Q100 90 128 94 Q126 110 121 124 Q100 148 79 124 Q74 110 72 94 Z" {...P("espalda")} />
           {/* tríceps */}
           <ellipse cx="48" cy="110" rx="8" ry="17" transform="rotate(6 48 110)" {...P("triceps")} />
           <ellipse cx="152" cy="110" rx="8" ry="17" transform="rotate(-6 152 110)" {...P("triceps")} />
@@ -612,7 +619,7 @@ function BodyMap({ side, selected, onSelect }) {
           <ellipse cx="42" cy="162" rx="7" ry="21" transform="rotate(4 42 162)" {...P("antebrazos")} />
           <ellipse cx="158" cy="162" rx="7" ry="21" transform="rotate(-4 158 162)" {...P("antebrazos")} />
           {/* lumbar */}
-          <path d="M88 148 h24 v20 q-12 9 -24 0 z" {...P("lumbar")} />
+          <path d="M88 148 Q100 144 112 148 Q114 160 112 168 Q100 176 88 168 Q86 160 88 148 Z" {...P("lumbar")} />
           {/* glúteos */}
           <ellipse cx="86" cy="188" rx="15" ry="14" {...P("gluteos")} />
           <ellipse cx="114" cy="188" rx="15" ry="14" {...P("gluteos")} />
@@ -825,6 +832,8 @@ export default function App() {
   const [editRem, setEditRem] = useState(null);
   const [gymDay, setGymDay] = useState(new Date().getDay());
   const [gymView, setGymView] = useState("rutina");
+  const [progWeek, setProgWeek] = useState(0);
+  const [progDay, setProgDay] = useState(0);
   const [mapSide, setMapSide] = useState("front");
   const [muscle, setMuscle] = useState(null);
   const [openLift, setOpenLift] = useState(null);
@@ -847,7 +856,7 @@ export default function App() {
   useEffect(() => {
     (async () => {
       const s = await loadState();
-      if (s) setState((prev) => ({ ...prev, ...s, goals: { ...prev.goals, ...(s.goals || {}) } }));
+      if (s) setState((prev) => ({ ...prev, ...s, goals: { ...prev.goals, ...(s.goals || {}) }, program: s.program || prev.program }));
       setLoaded(true);
     })();
   }, []);
@@ -1457,6 +1466,169 @@ export default function App() {
     );
   }
 
+  function Programa() {
+    const progW = state.program.weeks[progWeek];
+    const day = progW.days[progDay];
+    const dayTonnage = day.exercises.reduce((a, e) => a + tonnage(e), 0);
+    const prevDay = progWeek > 0 ? state.program.weeks[progWeek - 1].days[progDay] : null;
+    const canCopyPrev = !!prevDay && prevDay.exercises.length > 0 && day.exercises.length === 0;
+
+    const updDay = (fn) => up((s) => { fn(s.program.weeks[progWeek].days[progDay]); return s; });
+
+    const addExercise = () => updDay((d) => {
+      d.exercises.push({
+        id: uid(), name: "", intensity: "", rest: "",
+        sets: [{ weight: "", reps: "", rir: "" }, { weight: "", reps: "", rir: "" }, { weight: "", reps: "", rir: "" }],
+      });
+    });
+    const removeExercise = (id) => updDay((d) => { d.exercises = d.exercises.filter((x) => x.id !== id); });
+    const editExercise = (id, field, value) => updDay((d) => { d.exercises.find((x) => x.id === id)[field] = value; });
+    const addSet = (id) => updDay((d) => {
+      const ex = d.exercises.find((x) => x.id === id);
+      if (ex.sets.length < 6) ex.sets.push({ weight: "", reps: "", rir: "" });
+    });
+    const removeSet = (id) => updDay((d) => {
+      const ex = d.exercises.find((x) => x.id === id);
+      if (ex.sets.length > 1) ex.sets.pop();
+    });
+    const editSet = (id, i, field, value) => updDay((d) => { d.exercises.find((x) => x.id === id).sets[i][field] = value; });
+    const copyPrevWeek = () => up((s) => {
+      const prev = s.program.weeks[progWeek - 1].days[progDay];
+      s.program.weeks[progWeek].days[progDay].exercises = prev.exercises.map((e) => ({
+        id: uid(), name: e.name, intensity: e.intensity, rest: e.rest,
+        sets: e.sets.map(() => ({ weight: "", reps: "", rir: "" })),
+      }));
+      return s;
+    });
+
+    return (
+      <>
+        <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+          {state.program.weeks.map((w, i) => {
+            const active = progWeek === i;
+            const hasEx = w.days.some((d) => d.exercises.length > 0);
+            return (
+              <button key={i} onClick={() => { setProgWeek(i); setProgDay(0); }} style={{
+                flex: 1, padding: "10px 0 8px", borderRadius: 12, cursor: "pointer",
+                fontWeight: 800, fontSize: 13, fontFamily: FONT,
+                border: `1px solid ${active ? "transparent" : C.line}`,
+                background: active ? `linear-gradient(135deg, ${C.primary}, ${C.accent})` : C.card,
+                color: active ? "#fff" : hasEx ? C.ink : C.sub,
+                boxShadow: active ? `0 4px 12px ${C.primaryGlow}` : "none",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                transition: "all 0.15s",
+              }}>
+                S{i + 1}
+                <span style={{ width: 4, height: 4, borderRadius: 2, background: active ? "rgba(255,255,255,0.9)" : hasEx ? C.primary : "transparent" }} />
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+          {progW.days.map((d, i) => {
+            const active = progDay === i;
+            const hasEx = d.exercises.length > 0;
+            return (
+              <button key={i} onClick={() => setProgDay(i)} style={{
+                flex: 1, padding: "10px 0 8px", borderRadius: 12, cursor: "pointer",
+                fontWeight: 800, fontSize: 12.5, fontFamily: FONT,
+                border: `1px solid ${active ? "transparent" : C.line}`,
+                background: active ? `linear-gradient(135deg, ${C.primary}, ${C.accent})` : C.card,
+                color: active ? "#fff" : hasEx ? C.ink : C.sub,
+                boxShadow: active ? `0 4px 12px ${C.primaryGlow}` : "none",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                transition: "all 0.15s",
+              }}>
+                {i + 1}
+                <span style={{ width: 4, height: 4, borderRadius: 2, background: active ? "rgba(255,255,255,0.9)" : hasEx ? C.primary : "transparent" }} />
+              </button>
+            );
+          })}
+        </div>
+
+        <Card>
+          <Input placeholder={`Nombre del Día ${progDay + 1} (ej: Piernas)`} value={day.name}
+            onChange={(e) => updDay((d) => { d.name = e.target.value; })}
+            style={{ fontWeight: 700, fontSize: 17, marginBottom: 10 }} />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={{ fontSize: 13, color: C.sub, fontWeight: 700 }}>Tonelaje total del día</div>
+            <div style={{ fontSize: 18, fontWeight: 800 }}>{dayTonnage.toLocaleString("es-AR")} kg</div>
+          </div>
+          <div style={lblStyle}>OBSERVACIONES Y NOTAS</div>
+          <textarea
+            placeholder="Sensaciones, ajustes, lo que quieras recordar de esta sesión…"
+            value={day.notes}
+            onChange={(e) => updDay((d) => { d.notes = e.target.value; })}
+            style={{
+              width: "100%", boxSizing: "border-box", minHeight: 60, resize: "vertical",
+              border: `1.5px solid ${C.line}`, borderRadius: 12, padding: 10,
+              fontFamily: FONT, fontSize: 14, background: C.input, color: C.ink, outline: "none",
+            }} />
+        </Card>
+
+        {canCopyPrev && (
+          <Card style={{ marginTop: 10, background: C.primarySoft }}>
+            <div style={{ fontSize: 13.5, color: C.theme === "dark" ? C.primaryInk : C.primary, fontWeight: 600, marginBottom: 10, lineHeight: 1.4 }}>
+              💡 La Semana {progWeek} ya tiene ejercicios cargados para este día. ¿Copiamos la misma estructura (sin los pesos) para seguir la progresión?
+            </div>
+            <Btn small onClick={copyPrevWeek}>Copiar ejercicios de Semana {progWeek}</Btn>
+          </Card>
+        )}
+
+        <SectionTitle>Ejercicios</SectionTitle>
+        {day.exercises.length === 0 && <Card><Empty text="Todavía no cargaste ejercicios para este día." /></Card>}
+        {day.exercises.map((e) => (
+          <Card key={e.id} style={{ marginBottom: 8 }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <Input placeholder="Nombre del ejercicio (ej: Sentadilla 3x5)" value={e.name}
+                onChange={(ev) => editExercise(e.id, "name", ev.target.value)}
+                style={{ fontWeight: 700 }} />
+              <Btn kind="danger" small onClick={() => removeExercise(e.id)}>✕</Btn>
+            </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+              <div style={{ flex: 1 }}>
+                <div style={lblStyle}>Intensidad (RIR/RPE)</div>
+                <Input placeholder="rir 1 - @8-9" value={e.intensity} onChange={(ev) => editExercise(e.id, "intensity", ev.target.value)} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={lblStyle}>Descanso</div>
+                <Input placeholder="3'-4'" value={e.rest} onChange={(ev) => editExercise(e.id, "rest", ev.target.value)} />
+              </div>
+            </div>
+
+            <div style={{ marginTop: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 1fr", gap: 6, marginBottom: 4 }}>
+                <div />
+                <div style={lblStyle}>Peso (kg)</div>
+                <div style={lblStyle}>Reps</div>
+                <div style={lblStyle}>RIR</div>
+              </div>
+              {e.sets.map((st, i) => (
+                <div key={i} style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 1fr", gap: 6, alignItems: "center", marginBottom: 6 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: C.sub, textAlign: "center" }}>{i + 1}</div>
+                  <Input type="number" value={st.weight} onChange={(ev) => editSet(e.id, i, "weight", ev.target.value)} />
+                  <Input type="number" value={st.reps} onChange={(ev) => editSet(e.id, i, "reps", ev.target.value)} />
+                  <Input type="number" value={st.rir} onChange={(ev) => editSet(e.id, i, "rir", ev.target.value)} />
+                </div>
+              ))}
+              <div style={{ display: "flex", gap: 6, marginTop: 4, alignItems: "center" }}>
+                <Btn kind="soft" small onClick={() => addSet(e.id)} style={{ opacity: e.sets.length >= 6 ? 0.4 : 1 }}>+ Serie</Btn>
+                <Btn kind="ghost" small onClick={() => removeSet(e.id)} style={{ opacity: e.sets.length <= 1 ? 0.4 : 1 }}>－ Serie</Btn>
+                <div style={{ flex: 1 }} />
+                <div style={{ fontSize: 12.5, color: C.sub, fontWeight: 700 }}>
+                  Tonelaje: <span style={{ color: C.ink, fontWeight: 800 }}>{tonnage(e).toLocaleString("es-AR")} kg</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+
+        <Btn onClick={addExercise} style={{ width: "100%" }}>＋ Agregar ejercicio</Btn>
+      </>
+    );
+  }
+
   function Gym() {
     const historyDates = Object.keys(state.sessionLog)
       .filter((k) => (state.sessionLog[k] || []).length > 0)
@@ -1476,11 +1648,13 @@ export default function App() {
 
         <div style={{ marginBottom: 14 }}>
           <Segmented
-            options={[["rutina", "Rutina"], ["musculos", "🧍 Músculos"], ["historial", "Historial"]]}
+            options={[["rutina", "Rutina"], ["programa", "Programa"], ["musculos", "🧍 Músculos"], ["historial", "Historial"]]}
             value={gymView}
             onChange={setGymView}
           />
         </div>
+
+        {gymView === "programa" && Programa()}
 
         {gymView === "musculos" && Musculos()}
 
