@@ -392,34 +392,11 @@ const initialState = {
     { id: "h2", name: "Tomar 2L de agua", icon: "💧", days: [0, 1, 2, 3, 4, 5, 6], history: {} },
     { id: "h3", name: "Dormir antes de las 00", icon: "😴", days: [0, 1, 2, 3, 4, 5, 6], history: {} },
   ],
-  workouts: {
-    1: { name: "Pecho y tríceps", exercises: [
-      { id: uid(), name: "Press banca con barra", sets: 4, reps: "8-10", weight: 40 },
-      { id: uid(), name: "Press inclinado con mancuernas", sets: 3, reps: "10-12", weight: 14 },
-      { id: uid(), name: "Fondos en paralelas", sets: 3, reps: "máx", weight: 0 },
-    ]},
-    2: { name: "Espalda y bíceps", exercises: [
-      { id: uid(), name: "Dominadas", sets: 4, reps: "8-10", weight: 0 },
-      { id: uid(), name: "Remo con barra", sets: 3, reps: "10", weight: 30 },
-      { id: uid(), name: "Curl con barra", sets: 3, reps: "12", weight: 15 },
-    ]},
-    3: { name: "Piernas", exercises: [
-      { id: uid(), name: "Sentadilla con barra", sets: 4, reps: "8", weight: 50 },
-      { id: uid(), name: "Peso muerto rumano", sets: 3, reps: "10", weight: 40 },
-      { id: uid(), name: "Elevación de talones de pie", sets: 4, reps: "15", weight: 20 },
-    ]},
-    4: { name: "Hombros y core", exercises: [
-      { id: uid(), name: "Press militar con barra", sets: 4, reps: "8-10", weight: 25 },
-      { id: uid(), name: "Vuelos laterales", sets: 3, reps: "12-15", weight: 8 },
-      { id: uid(), name: "Plancha", sets: 3, reps: "45s", weight: 0 },
-    ]},
-    5: { name: "Full body", exercises: [
-      { id: uid(), name: "Sentadilla goblet", sets: 3, reps: "10", weight: 0 },
-    ]},
-  },
   workoutLog: {},
   sessionLog: {},
   exerciseHistory: {},
+  currentWeek: 0,
+  currentDay: 0,
   program: {
     weeks: Array.from({ length: 5 }, () => ({
       days: Array.from({ length: 7 }, () => ({ name: "", notes: "", exercises: [] })),
@@ -882,21 +859,17 @@ export default function App() {
   const [banner, setBanner] = useState(null);
   const [editHabit, setEditHabit] = useState(null);
   const [habitMonth, setHabitMonth] = useState(null);
-  const [editEx, setEditEx] = useState(null);
   const [exDetail, setExDetail] = useState(null);
   const [editRem, setEditRem] = useState(null);
-  const [gymDay, setGymDay] = useState(new Date().getDay());
   const [gymView, setGymView] = useState("rutina");
-  const [progWeek, setProgWeek] = useState(0);
-  const [progDay, setProgDay] = useState(0);
   const [importingRoutine, setImportingRoutine] = useState(false);
   const fileImportRef = useRef(null);
   const [mapSide, setMapSide] = useState("front");
   const [muscle, setMuscle] = useState(null);
   const [openLift, setOpenLift] = useState(null);
   const [liftCalc, setLiftCalc] = useState({ w: "", r: "" });
-  const [addDay, setAddDay] = useState(new Date().getDay());
   const [timer, setTimer] = useState(0);
+  const [timerTotal, setTimerTotal] = useState(60);
   const [confirmReset, setConfirmReset] = useState(false);
   const [showCalc, setShowCalc] = useState(false);
   const firedRef = useRef({});
@@ -1000,10 +973,11 @@ export default function App() {
   /* ---------- métricas ---------- */
   const habitsToday = state.habits.filter((h) => h.days.includes(dow));
   const habitsDone = habitsToday.filter((h) => h.history[today]).length;
-  const workout = state.workouts[dow];
   const wLog = state.workoutLog[today] || {};
-  const exDone = workout ? workout.exercises.filter((e) => wLog[e.id]).length : 0;
-  const exTotal = workout ? workout.exercises.length : 0;
+  const currentProgWeek = state.program.weeks[state.currentWeek];
+  const currentProgDay = currentProgWeek ? currentProgWeek.days[state.currentDay] : null;
+  const exDone = currentProgDay ? currentProgDay.exercises.filter((e) => wLog[e.id]).length : 0;
+  const exTotal = currentProgDay ? currentProgDay.exercises.length : 0;
   const mealsToday = state.meals[today] || [];
   const sumM = (k) => mealsToday.reduce((a, m) => a + (Number(m[k]) || 0), 0);
   const kcal = sumM("kcal"), prot = sumM("protein"), carbs = sumM("carbs"), fat = sumM("fat");
@@ -1066,15 +1040,16 @@ export default function App() {
       s.sessionLog[today] = s.sessionLog[today] || [];
       if (s.workoutLog[today][ex.id]) {
         delete s.workoutLog[today][ex.id];
-        s.sessionLog[today] = s.sessionLog[today].filter((x) => x.name !== ex.name);
+        s.sessionLog[today] = s.sessionLog[today].filter((x) => x.id !== ex.id);
         if (s.exerciseHistory[ex.name])
           s.exerciseHistory[ex.name] = s.exerciseHistory[ex.name].filter((x) => x.date !== today);
       } else {
+        const maxWeight = Math.max(0, ...ex.sets.map((st) => Number(st.weight) || 0));
         s.workoutLog[today][ex.id] = true;
-        s.sessionLog[today].push({ name: ex.name, sets: ex.sets, reps: ex.reps, weight: ex.weight });
+        s.sessionLog[today].push({ id: ex.id, name: ex.name, setsCount: ex.sets.length, tonnage: tonnage(ex) });
         s.exerciseHistory[ex.name] = s.exerciseHistory[ex.name] || [];
         if (!s.exerciseHistory[ex.name].some((x) => x.date === today))
-          s.exerciseHistory[ex.name].push({ date: today, weight: Number(ex.weight) || 0 });
+          s.exerciseHistory[ex.name].push({ date: today, weight: maxWeight });
       }
       return s;
     });
@@ -1084,14 +1059,26 @@ export default function App() {
     return h.length ? Math.max(...h.map((x) => Number(x.weight) || 0)) : null;
   };
 
-  const addToRoutine = (exName, day, weight) => {
+  const setCurrentWeek = (i) => up((s) => { s.currentWeek = i; s.currentDay = 0; return s; });
+  const setCurrentDay = (i) => up((s) => { s.currentDay = i; return s; });
+
+  const addExerciseToCurrentDay = (exName, weight) => {
+    if (!currentProgDay) {
+      setBanner("Primero elegí un día en Rutina (o importá/creá tu Programa).");
+      setTimeout(() => setBanner(null), 4000);
+      return;
+    }
     up((s) => {
-      if (!s.workouts[day]) s.workouts[day] = { name: "Mi rutina", exercises: [] };
-      if (!s.workouts[day].exercises.some((x) => x.name === exName))
-        s.workouts[day].exercises.push({ id: uid(), name: exName, sets: 3, reps: "10", weight: Number(weight) || 0 });
+      const day = s.program.weeks[state.currentWeek].days[state.currentDay];
+      if (!day.exercises.some((x) => x.name === exName)) {
+        day.exercises.push({
+          id: uid(), name: exName, intensity: "", rest: "",
+          sets: [{ weight: String(weight || ""), reps: "", rir: "" }, { weight: "", reps: "", rir: "" }, { weight: "", reps: "", rir: "" }],
+        });
+      }
       return s;
     });
-    setBanner(`"${exName}" agregado a ${DAY_NAMES[day]} ✅`);
+    setBanner(`"${exName}" agregado a tu día actual ✅`);
     setTimeout(() => setBanner(null), 4000);
   };
 
@@ -1214,14 +1201,14 @@ export default function App() {
           <div style={{ fontSize: 13, color: C.sub, fontWeight: 500 }}>Tocá un vaso para registrar.</div>
         </Card>
 
-        {workout && (
+        {currentProgDay && currentProgDay.exercises.length > 0 && (
           <>
-            <SectionTitle right={<Btn kind="ghost" small onClick={() => { setGymDay(dow); setTab("gym"); }}>Ver rutina →</Btn>}>
-              Gym · {workout.name}
+            <SectionTitle right={<Btn kind="ghost" small onClick={() => { setGymView("rutina"); setTab("gym"); }}>Ver rutina →</Btn>}>
+              Gym · {currentProgDay.name || `Día ${state.currentDay + 1}`}
             </SectionTitle>
             <Card style={{ padding: 8 }}>
-              {workout.exercises.map((e) => (
-                <Row key={e.id} title={e.name} sub={`${e.sets}×${e.reps}${e.weight ? ` · ${e.weight} kg` : ""}`}
+              {currentProgDay.exercises.map((e) => (
+                <Row key={e.id} title={e.name} sub={`${e.sets.length} serie${e.sets.length === 1 ? "" : "s"}${e.intensity ? ` · ${e.intensity}` : ""}`}
                   right={<Check color={C.amber} done={!!wLog[e.id]} onClick={() => toggleEx(e)} />} />
               ))}
             </Card>
@@ -1255,6 +1242,43 @@ export default function App() {
           <BigStat value={`${weekHabitPct}%`} label="hábitos cumplidos (7d)" color={C.primary} />
           <BigStat value={`${achDone}/${ACHIEVEMENTS.length}`} label="logros" color={C.blue} />
         </Card>
+
+        <div style={{
+          position: "fixed", bottom: "calc(84px + env(safe-area-inset-bottom))",
+          left: 12, right: 12, zIndex: 35, maxWidth: 500, margin: "0 auto",
+          display: "flex", justifyContent: "center", pointerEvents: "none",
+        }}>
+          {timer > 0 ? (
+            <div style={{
+              pointerEvents: "auto", background: C.card, border: `1px solid ${C.line}`, borderRadius: 999,
+              padding: "6px 10px 6px 6px", display: "flex", alignItems: "center", gap: 10,
+              boxShadow: "0 8px 24px rgba(0,0,0,0.14)",
+            }}>
+              <Ring pct={timer / timerTotal} size={40} stroke={5} color={C.amber}>
+                <div style={{ fontSize: 12, fontWeight: 800 }}>{timer}</div>
+              </Ring>
+              <div style={{ fontSize: 13, fontWeight: 700, color: C.sub }}>Descanso</div>
+              <button onClick={() => setTimer(0)} style={{
+                background: C.soft, border: "none", borderRadius: 999, width: 28, height: 28,
+                cursor: "pointer", fontSize: 13, fontFamily: FONT, color: C.sub,
+              }}>✕</button>
+            </div>
+          ) : (
+            <div style={{
+              pointerEvents: "auto", display: "flex", gap: 6, background: C.card,
+              border: `1px solid ${C.line}`, borderRadius: 999, padding: 6,
+              boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+            }}>
+              {[60, 90, 120].map((t) => (
+                <button key={t} onClick={() => { setTimer(t); setTimerTotal(t); }} style={{
+                  border: "none", borderRadius: 999, padding: "8px 14px", cursor: "pointer",
+                  fontFamily: FONT, fontWeight: 800, fontSize: 12.5,
+                  background: C.primarySoft, color: C.theme === "dark" ? C.primaryInk : C.primary,
+                }}>⏱ {t}s</button>
+              ))}
+            </div>
+          )}
+        </div>
       </>
     );
   }
@@ -1397,9 +1421,6 @@ export default function App() {
   };
 
   /* ============ GYM ============ */
-  const [newEx, setNewEx] = useState({ name: "", sets: 3, reps: "10", weight: 0 });
-  const gymW = state.workouts[gymDay];
-
   function Musculos() {
     const muscles = mapSide === "front" ? FRONT_MUSCLES : BACK_MUSCLES;
     const md = muscle ? EXDB[muscle] : null;
@@ -1447,21 +1468,17 @@ export default function App() {
         {md && (
           <>
             <SectionTitle>{md.icon} Ejercicios de {md.label.toLowerCase()}</SectionTitle>
-            <div style={{ marginBottom: 8 }}>
-              <div style={lblStyle}>AGREGAR A LA RUTINA DEL DÍA:</div>
-              <DayPicker days={[addDay]} onToggle={(i) => setAddDay(i)} />
-            </div>
             {md.exercises.map((e) => {
               const open = openLift === e.name;
               const an = open ? analyzeLift(e, liftCalc.w, liftCalc.r, bodyWeight) : null;
               const toneColor = an ? { up: C.primary, ok: C.blue, hold: C.amber, down: C.red }[an.tone] : null;
-              const inRoutine = Object.values(state.workouts).some((w) => w && w.exercises.some((x) => x.name === e.name));
+              const inRoutine = !!currentProgDay && currentProgDay.exercises.some((x) => x.name === e.name);
               return (
                 <Card key={e.name} style={{ marginBottom: 8 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700, fontSize: 15 }}>
-                        {e.name} {inRoutine && <span style={{ fontSize: 11, color: C.primary, fontWeight: 800 }}>· en tu rutina ✓</span>}
+                        {e.name} {inRoutine && <span style={{ fontSize: 11, color: C.primary, fontWeight: 800 }}>· en tu día actual ✓</span>}
                       </div>
                       <div style={{ fontSize: 12.5, color: C.sub, fontWeight: 600 }}>{e.eq}{e.ratio ? " · con análisis de fuerza" : ""}</div>
                     </div>
@@ -1509,8 +1526,8 @@ export default function App() {
                         </div>
                       )}
 
-                      <Btn onClick={() => addToRoutine(e.name, addDay, liftCalc.w)} style={{ width: "100%" }}>
-                        ＋ Agregar a {DAY_NAMES[addDay]}
+                      <Btn onClick={() => addExerciseToCurrentDay(e.name, liftCalc.w)} style={{ width: "100%" }}>
+                        ＋ Agregar al día actual
                       </Btn>
                     </div>
                   )}
@@ -1523,11 +1540,12 @@ export default function App() {
     );
   }
 
-  function Programa() {
-    const progW = state.program.weeks[progWeek];
-    const day = progW ? progW.days[progDay] : null;
+  function ProgramaView(mode) {
+    const isRutina = mode === "rutina";
+    const progW = state.program.weeks[state.currentWeek];
+    const day = progW ? progW.days[state.currentDay] : null;
     const dayTonnage = day ? day.exercises.reduce((a, e) => a + tonnage(e), 0) : 0;
-    const prevDay = day && progWeek > 0 ? state.program.weeks[progWeek - 1].days[progDay] : null;
+    const prevDay = day && state.currentWeek > 0 ? state.program.weeks[state.currentWeek - 1].days[state.currentDay] : null;
     const canCopyPrev = !!prevDay && prevDay.exercises.length > 0 && day.exercises.length === 0;
 
     const handleImportFile = async (ev) => {
@@ -1544,9 +1562,7 @@ export default function App() {
           return;
         }
         if (!confirm(`Encontré ${parsed.weeks.length} semana(s) y ${totalEx} ejercicio(s). Esto va a reemplazar tu Programa actual. ¿Importar?`)) return;
-        up((s) => { s.program = parsed; return s; });
-        setProgWeek(0);
-        setProgDay(0);
+        up((s) => { s.program = parsed; s.currentWeek = 0; s.currentDay = 0; return s; });
         setBanner("Rutina importada ✅");
         setTimeout(() => setBanner(null), 4000);
       } catch {
@@ -1557,7 +1573,7 @@ export default function App() {
       }
     };
 
-    const updDay = (fn) => up((s) => { fn(s.program.weeks[progWeek].days[progDay]); return s; });
+    const updDay = (fn) => up((s) => { fn(s.program.weeks[state.currentWeek].days[state.currentDay]); return s; });
 
     const addExercise = () => updDay((d) => {
       d.exercises.push({
@@ -1577,8 +1593,8 @@ export default function App() {
     });
     const editSet = (id, i, field, value) => updDay((d) => { d.exercises.find((x) => x.id === id).sets[i][field] = value; });
     const copyPrevWeek = () => up((s) => {
-      const prev = s.program.weeks[progWeek - 1].days[progDay];
-      s.program.weeks[progWeek].days[progDay].exercises = prev.exercises.map((e) => ({
+      const prev = s.program.weeks[state.currentWeek - 1].days[state.currentDay];
+      s.program.weeks[state.currentWeek].days[state.currentDay].exercises = prev.exercises.map((e) => ({
         id: uid(), name: e.name, intensity: e.intensity, rest: e.rest,
         sets: e.sets.map(() => ({ weight: "", reps: "", rir: "" })),
       }));
@@ -1587,17 +1603,19 @@ export default function App() {
 
     return (
       <>
-        <Card style={{ marginBottom: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-            <div style={{ fontSize: 13, color: C.sub, fontWeight: 600, lineHeight: 1.4 }}>
-              📥 Importá el Excel que te pasa tu coach y se carga toda la rutina (semanas, días y ejercicios) automáticamente.
+        {!isRutina && (
+          <Card style={{ marginBottom: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+              <div style={{ fontSize: 13, color: C.sub, fontWeight: 600, lineHeight: 1.4 }}>
+                📥 Importá el Excel que te pasa tu coach y se carga toda la rutina (semanas, días y ejercicios) automáticamente.
+              </div>
+              <Btn small onClick={() => fileImportRef.current && fileImportRef.current.click()} style={{ flexShrink: 0 }}>
+                {importingRoutine ? "Leyendo…" : "Importar .xlsx"}
+              </Btn>
             </div>
-            <Btn small onClick={() => fileImportRef.current && fileImportRef.current.click()} style={{ flexShrink: 0 }}>
-              {importingRoutine ? "Leyendo…" : "Importar .xlsx"}
-            </Btn>
-          </div>
-          <input ref={fileImportRef} type="file" accept=".xlsx" style={{ display: "none" }} onChange={handleImportFile} />
-        </Card>
+            <input ref={fileImportRef} type="file" accept=".xlsx" style={{ display: "none" }} onChange={handleImportFile} />
+          </Card>
+        )}
 
         {!progW && <Card><Empty text="Todavía no hay semanas cargadas. Importá tu rutina o agregá ejercicios manualmente." /></Card>}
 
@@ -1605,10 +1623,10 @@ export default function App() {
           <>
             <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
               {state.program.weeks.map((w, i) => {
-                const active = progWeek === i;
+                const active = state.currentWeek === i;
                 const hasEx = w.days.some((d) => d.exercises.length > 0);
                 return (
-                  <button key={i} onClick={() => { setProgWeek(i); setProgDay(0); }} style={{
+                  <button key={i} onClick={() => setCurrentWeek(i)} style={{
                     flex: 1, padding: "10px 0 8px", borderRadius: 12, cursor: "pointer",
                     fontWeight: 800, fontSize: 13, fontFamily: FONT,
                     border: `1px solid ${active ? "transparent" : C.line}`,
@@ -1627,10 +1645,10 @@ export default function App() {
 
             <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
               {progW.days.map((d, i) => {
-                const active = progDay === i;
+                const active = state.currentDay === i;
                 const hasEx = d.exercises.length > 0;
                 return (
-                  <button key={i} onClick={() => setProgDay(i)} style={{
+                  <button key={i} onClick={() => setCurrentDay(i)} style={{
                     flex: "1 1 0", minWidth: 34, padding: "10px 0 8px", borderRadius: 12, cursor: "pointer",
                     fontWeight: 800, fontSize: 12.5, fontFamily: FONT,
                     border: `1px solid ${active ? "transparent" : C.line}`,
@@ -1652,7 +1670,7 @@ export default function App() {
             {day && (
               <>
                 <Card>
-                  <Input placeholder={`Nombre del Día ${progDay + 1} (ej: Piernas)`} value={day.name}
+                  <Input placeholder={`Nombre del Día ${state.currentDay + 1} (ej: Piernas)`} value={day.name}
                     onChange={(e) => updDay((d) => { d.name = e.target.value; })}
                     style={{ fontWeight: 700, fontSize: 17, marginBottom: 10 }} />
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -1674,59 +1692,98 @@ export default function App() {
                 {canCopyPrev && (
                   <Card style={{ marginTop: 10, background: C.primarySoft }}>
                     <div style={{ fontSize: 13.5, color: C.theme === "dark" ? C.primaryInk : C.primary, fontWeight: 600, marginBottom: 10, lineHeight: 1.4 }}>
-                      💡 La Semana {progWeek} ya tiene ejercicios cargados para este día. ¿Copiamos la misma estructura (sin los pesos) para seguir la progresión?
+                      💡 La Semana {state.currentWeek} ya tiene ejercicios cargados para este día. ¿Copiamos la misma estructura (sin los pesos) para seguir la progresión?
                     </div>
-                    <Btn small onClick={copyPrevWeek}>Copiar ejercicios de Semana {progWeek}</Btn>
+                    <Btn small onClick={copyPrevWeek}>Copiar ejercicios de Semana {state.currentWeek}</Btn>
                   </Card>
                 )}
 
                 <SectionTitle>Ejercicios</SectionTitle>
                 {day.exercises.length === 0 && <Card><Empty text="Todavía no cargaste ejercicios para este día." /></Card>}
-                {day.exercises.map((e) => (
-                  <Card key={e.id} style={{ marginBottom: 8 }}>
-                    <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                      <Input placeholder="Nombre del ejercicio (ej: Sentadilla 3x5)" value={e.name}
-                        onChange={(ev) => editExercise(e.id, "name", ev.target.value)}
-                        style={{ fontWeight: 700 }} />
-                      <Btn kind="danger" small onClick={() => removeExercise(e.id)}>✕</Btn>
-                    </div>
-                    <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={lblStyle}>Intensidad (RIR/RPE)</div>
-                        <Input placeholder="rir 1 - @8-9" value={e.intensity} onChange={(ev) => editExercise(e.id, "intensity", ev.target.value)} />
+                {day.exercises.map((e) => {
+                  const showDetail = isRutina && exDetail === e.id;
+                  const pr = prOf(e.name);
+                  const hist = (state.exerciseHistory[e.name] || []).slice(-10);
+                  const dbEx = Object.values(EXDB).flatMap((m) => m.exercises).find((x) => x.name === e.name);
+                  return (
+                    <Card key={e.id} style={{ marginBottom: 8 }}>
+                      <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                        {isRutina && <Check color={C.amber} done={!!wLog[e.id]} onClick={() => toggleEx(e)} />}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <Input placeholder="Nombre del ejercicio (ej: Sentadilla 3x5)" value={e.name}
+                            onChange={(ev) => editExercise(e.id, "name", ev.target.value)}
+                            style={{ fontWeight: 700 }} />
+                          {isRutina && pr ? (
+                            <div style={{ fontSize: 11.5, color: C.amber, fontWeight: 800, marginTop: 4 }}>🏅 PR {pr} kg</div>
+                          ) : null}
+                        </div>
+                        {isRutina && (hist.length > 0 || dbEx) && (
+                          <Btn kind="ghost" small onClick={() => setExDetail(showDetail ? null : e.id)}>{showDetail ? "▲" : "ℹ️"}</Btn>
+                        )}
+                        <Btn kind="danger" small onClick={() => removeExercise(e.id)}>✕</Btn>
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={lblStyle}>Descanso</div>
-                        <Input placeholder="3'-4'" value={e.rest} onChange={(ev) => editExercise(e.id, "rest", ev.target.value)} />
-                      </div>
-                    </div>
 
-                    <div style={{ marginTop: 10 }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 1fr", gap: 6, marginBottom: 4 }}>
-                        <div />
-                        <div style={lblStyle}>Peso (kg)</div>
-                        <div style={lblStyle}>Reps</div>
-                        <div style={lblStyle}>RIR</div>
-                      </div>
-                      {e.sets.map((st, i) => (
-                        <div key={i} style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 1fr", gap: 6, alignItems: "center", marginBottom: 6 }}>
-                          <div style={{ fontSize: 12, fontWeight: 800, color: C.sub, textAlign: "center" }}>{i + 1}</div>
-                          <Input type="number" value={st.weight} onChange={(ev) => editSet(e.id, i, "weight", ev.target.value)} />
-                          <Input type="number" value={st.reps} onChange={(ev) => editSet(e.id, i, "reps", ev.target.value)} />
-                          <Input type="number" value={st.rir} onChange={(ev) => editSet(e.id, i, "rir", ev.target.value)} />
+                      {showDetail && (
+                        <div style={{ marginTop: 10, background: C.soft, borderRadius: 12, padding: 10 }}>
+                          {dbEx && (
+                            <>
+                              <div style={{ fontSize: 13, lineHeight: 1.5, marginBottom: 6 }}><b>Técnica:</b> {dbEx.tip}</div>
+                              <a href={ytLink(e.name)} target="_blank" rel="noreferrer"
+                                style={{ fontSize: 13, fontWeight: 700, color: C.blue, textDecoration: "none" }}>📺 Ver cómo se hace →</a>
+                            </>
+                          )}
+                          {hist.length > 0 && (
+                            <>
+                              <div style={{ fontSize: 11.5, fontWeight: 800, color: C.sub, margin: "10px 0 4px" }}>HISTORIAL DE PESO</div>
+                              {hist.map((x, i) => (
+                                <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "2px 0", fontWeight: 600 }}>
+                                  <span style={{ color: C.sub }}>{fmtDate(x.date)}</span>
+                                  <span style={{ color: Number(x.weight) === pr ? C.amber : C.ink }}>{x.weight} kg{Number(x.weight) === pr ? " 🏅" : ""}</span>
+                                </div>
+                              ))}
+                            </>
+                          )}
                         </div>
-                      ))}
-                      <div style={{ display: "flex", gap: 6, marginTop: 4, alignItems: "center" }}>
-                        <Btn kind="soft" small onClick={() => addSet(e.id)} style={{ opacity: e.sets.length >= 6 ? 0.4 : 1 }}>+ Serie</Btn>
-                        <Btn kind="ghost" small onClick={() => removeSet(e.id)} style={{ opacity: e.sets.length <= 1 ? 0.4 : 1 }}>－ Serie</Btn>
-                        <div style={{ flex: 1 }} />
-                        <div style={{ fontSize: 12.5, color: C.sub, fontWeight: 700 }}>
-                          Tonelaje: <span style={{ color: C.ink, fontWeight: 800 }}>{tonnage(e).toLocaleString("es-AR")} kg</span>
+                      )}
+
+                      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={lblStyle}>Intensidad (RIR/RPE)</div>
+                          <Input placeholder="rir 1 - @8-9" value={e.intensity} onChange={(ev) => editExercise(e.id, "intensity", ev.target.value)} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={lblStyle}>Descanso</div>
+                          <Input placeholder="3'-4'" value={e.rest} onChange={(ev) => editExercise(e.id, "rest", ev.target.value)} />
                         </div>
                       </div>
-                    </div>
-                  </Card>
-                ))}
+
+                      <div style={{ marginTop: 10 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 1fr", gap: 6, marginBottom: 4 }}>
+                          <div />
+                          <div style={lblStyle}>Peso (kg)</div>
+                          <div style={lblStyle}>Reps</div>
+                          <div style={lblStyle}>RIR</div>
+                        </div>
+                        {e.sets.map((st, i) => (
+                          <div key={i} style={{ display: "grid", gridTemplateColumns: "20px 1fr 1fr 1fr", gap: 6, alignItems: "center", marginBottom: 6 }}>
+                            <div style={{ fontSize: 12, fontWeight: 800, color: C.sub, textAlign: "center" }}>{i + 1}</div>
+                            <Input type="number" value={st.weight} onChange={(ev) => editSet(e.id, i, "weight", ev.target.value)} />
+                            <Input type="number" value={st.reps} onChange={(ev) => editSet(e.id, i, "reps", ev.target.value)} />
+                            <Input type="number" value={st.rir} onChange={(ev) => editSet(e.id, i, "rir", ev.target.value)} />
+                          </div>
+                        ))}
+                        <div style={{ display: "flex", gap: 6, marginTop: 4, alignItems: "center" }}>
+                          <Btn kind="soft" small onClick={() => addSet(e.id)} style={{ opacity: e.sets.length >= 6 ? 0.4 : 1 }}>+ Serie</Btn>
+                          <Btn kind="ghost" small onClick={() => removeSet(e.id)} style={{ opacity: e.sets.length <= 1 ? 0.4 : 1 }}>－ Serie</Btn>
+                          <div style={{ flex: 1 }} />
+                          <div style={{ fontSize: 12.5, color: C.sub, fontWeight: 700 }}>
+                            Tonelaje: <span style={{ color: C.ink, fontWeight: 800 }}>{tonnage(e).toLocaleString("es-AR")} kg</span>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
 
                 <Btn onClick={addExercise} style={{ width: "100%" }}>＋ Agregar ejercicio</Btn>
               </>
@@ -1744,15 +1801,7 @@ export default function App() {
 
     return (
       <>
-        <PageHeader title="Gimnasio" subtitle="Entrenamiento" right={
-          timer > 0 ? (
-            <Btn kind="dark" small onClick={() => setTimer(0)}>⏱ {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, "0")} ✕</Btn>
-          ) : (
-            <div style={{ display: "flex", gap: 5 }}>
-              {[60, 90, 120].map((t) => <Btn key={t} kind="soft" small style={{ padding: "7px 9px", fontSize: 12 }} onClick={() => setTimer(t)}>⏱{t}</Btn>)}
-            </div>
-          )
-        } />
+        <PageHeader title="Gimnasio" subtitle="Entrenamiento" />
 
         <div style={{ marginBottom: 14 }}>
           <Segmented
@@ -1762,7 +1811,9 @@ export default function App() {
           />
         </div>
 
-        {gymView === "programa" && Programa()}
+        {gymView === "rutina" && ProgramaView("rutina")}
+
+        {gymView === "programa" && ProgramaView("programa")}
 
         {gymView === "musculos" && Musculos()}
 
@@ -1776,186 +1827,11 @@ export default function App() {
                 </div>
                 {state.sessionLog[k].map((e, i) => (
                   <div key={i} style={{ fontSize: 13.5, color: C.sub, padding: "3px 0", fontWeight: 500 }}>
-                    • {e.name} — {e.sets}×{e.reps}{e.weight ? ` · ${e.weight} kg` : ""}
+                    • {e.name} — {e.setsCount} serie{e.setsCount === 1 ? "" : "s"}{e.tonnage ? ` · ${e.tonnage.toLocaleString("es-AR")} kg` : ""}
                   </div>
                 ))}
               </Card>
             ))}
-          </>
-        )}
-
-        {gymView === "rutina" && (
-          <>
-            <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-              {DAYS.map((lbl, i) => {
-                const active = gymDay === i;
-                const hasW = !!state.workouts[i];
-                return (
-                  <button key={i} onClick={() => { setGymDay(i); setEditEx(null); }} style={{
-                    flex: 1, padding: "10px 0 8px", borderRadius: 12, cursor: "pointer",
-                    fontWeight: 800, fontSize: 13, fontFamily: FONT,
-                    border: `1px solid ${active ? "transparent" : C.line}`,
-                    background: active ? `linear-gradient(135deg, ${C.primary}, ${C.accent})` : C.card,
-                    color: active ? "#fff" : hasW ? C.ink : C.sub,
-                    boxShadow: active ? `0 4px 12px ${C.primaryGlow}` : "none",
-                    display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
-                    transition: "all 0.15s",
-                  }}>
-                    {lbl}
-                    <span style={{
-                      width: 4, height: 4, borderRadius: 2,
-                      background: active ? "rgba(255,255,255,0.9)" : hasW ? C.primary : "transparent",
-                    }} />
-                  </button>
-                );
-              })}
-            </div>
-
-            <Card>
-              <Input placeholder="Nombre del entrenamiento (ej: Piernas)"
-                value={gymW?.name || ""}
-                onChange={(e) => up((s) => {
-                  if (!s.workouts[gymDay]) s.workouts[gymDay] = { name: "", exercises: [] };
-                  s.workouts[gymDay].name = e.target.value;
-                  return s;
-                })}
-                style={{ fontWeight: 700, fontSize: 17 }} />
-              {!gymW && <div style={{ fontSize: 13.5, color: C.sub, marginTop: 8 }}>Día de descanso. Escribí un nombre para crear una rutina, o agregá ejercicios desde 🧍 Músculos.</div>}
-              {gymW && (
-                <div style={{ marginTop: 8, textAlign: "right" }}>
-                  <Btn kind="danger" small onClick={() => up((s) => { delete s.workouts[gymDay]; return s; })}>Borrar rutina del día</Btn>
-                </div>
-              )}
-            </Card>
-
-            {gymW && (
-              <>
-                <SectionTitle right={<Btn kind="ghost" small onClick={() => setGymView("musculos")}>🧍 Explorar →</Btn>}>Ejercicios</SectionTitle>
-                {gymW.exercises.map((e) => {
-                  const editing = editEx === e.id;
-                  const showDetail = exDetail === e.id;
-                  const doneToday = gymDay === dow && wLog[e.id];
-                  const pr = prOf(e.name);
-                  const hist = (state.exerciseHistory[e.name] || []).slice(-10);
-                  const dbEx = Object.values(EXDB).flatMap((m) => m.exercises).find((x) => x.name === e.name);
-                  return (
-                    <Card key={e.id} style={{ marginBottom: 8 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        {gymDay === dow && !editing && <Check color={C.amber} done={!!doneToday} onClick={() => toggleEx(e)} />}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          {editing ? (
-                            <Input value={e.name} onChange={(ev) => up((s) => {
-                              s.workouts[gymDay].exercises.find((x) => x.id === e.id).name = ev.target.value; return s;
-                            })} />
-                          ) : (
-                            <>
-                              <div style={{ fontWeight: 700, fontSize: 15, textDecoration: doneToday ? "line-through" : "none", color: doneToday ? C.sub : C.ink }}>
-                                {e.name}{pr ? <span style={{ fontSize: 11.5, color: C.amber, fontWeight: 800 }}>  🏅 PR {pr} kg</span> : null}
-                              </div>
-                              <div style={{ fontSize: 13, color: C.sub, fontWeight: 500 }}>{e.sets} series × {e.reps}{e.weight ? ` · ${e.weight} kg` : ""}</div>
-                            </>
-                          )}
-                        </div>
-                        {!editing && (hist.length > 0 || dbEx) && (
-                          <Btn kind="ghost" small onClick={() => setExDetail(showDetail ? null : e.id)}>{showDetail ? "▲" : "ℹ️"}</Btn>
-                        )}
-                        <Btn kind="soft" small onClick={() => setEditEx(editing ? null : e.id)}>{editing ? "Listo" : "✎"}</Btn>
-                      </div>
-
-                      {showDetail && !editing && (
-                        <div style={{ marginTop: 10, background: C.soft, borderRadius: 12, padding: 10 }}>
-                          {dbEx && (
-                            <>
-                              <div style={{ fontSize: 13, lineHeight: 1.5, marginBottom: 6 }}><b>Técnica:</b> {dbEx.tip}</div>
-                              <a href={ytLink(e.name)} target="_blank" rel="noreferrer"
-                                style={{ fontSize: 13, fontWeight: 700, color: C.blue, textDecoration: "none" }}>📺 Ver cómo se hace →</a>
-                              {(() => {
-                                const an = analyzeLift(dbEx, e.weight, parseInt(e.reps) || 0, bodyWeight);
-                                return an ? (
-                                  <div style={{ fontSize: 12.5, marginTop: 8, fontWeight: 600, color: C.sub, lineHeight: 1.5 }}>
-                                    📊 Con {e.weight} kg × {parseInt(e.reps) || "?"} reps: {an.advice}
-                                  </div>
-                                ) : null;
-                              })()}
-                            </>
-                          )}
-                          {hist.length > 0 && (
-                            <>
-                              <div style={{ fontSize: 11.5, fontWeight: 800, color: C.sub, margin: "10px 0 4px" }}>HISTORIAL DE PESO</div>
-                              {hist.map((x, i) => (
-                                <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "2px 0", fontWeight: 600 }}>
-                                  <span style={{ color: C.sub }}>{fmtDate(x.date)}</span>
-                                  <span style={{ color: Number(x.weight) === pr ? C.amber : C.ink }}>{x.weight} kg{Number(x.weight) === pr ? " 🏅" : ""}</span>
-                                </div>
-                              ))}
-                            </>
-                          )}
-                        </div>
-                      )}
-
-                      {editing && (
-                        <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
-                          <div style={{ display: "flex", gap: 8 }}>
-                            <LabeledNum label="Series" value={e.sets} onChange={(v) => up((s) => {
-                              s.workouts[gymDay].exercises.find((x) => x.id === e.id).sets = v; return s;
-                            })} />
-                            <div style={{ flex: 1 }}>
-                              <div style={lblStyle}>Reps</div>
-                              <Input value={e.reps} onChange={(ev) => up((s) => {
-                                s.workouts[gymDay].exercises.find((x) => x.id === e.id).reps = ev.target.value; return s;
-                              })} />
-                            </div>
-                            <LabeledNum label="Kg" step={2.5} value={e.weight} onChange={(v) => up((s) => {
-                              s.workouts[gymDay].exercises.find((x) => x.id === e.id).weight = v; return s;
-                            })} />
-                          </div>
-                          <div style={{ textAlign: "right" }}>
-                            <Btn kind="danger" small onClick={() => {
-                              setEditEx(null);
-                              up((s) => { s.workouts[gymDay].exercises = s.workouts[gymDay].exercises.filter((x) => x.id !== e.id); return s; });
-                            }}>Borrar ejercicio</Btn>
-                          </div>
-                        </div>
-                      )}
-
-                      {!editing && (
-                        <div style={{ display: "flex", gap: 4, alignItems: "center", justifyContent: "flex-end", marginTop: 6 }}>
-                          <Btn kind="soft" small onClick={() => up((s) => {
-                            const ex = s.workouts[gymDay].exercises.find((x) => x.id === e.id);
-                            ex.weight = Math.max(0, (Number(ex.weight) || 0) - 2.5); return s;
-                          })}>−2.5</Btn>
-                          <div style={{ fontSize: 13, fontWeight: 800, minWidth: 50, textAlign: "center" }}>{e.weight} kg</div>
-                          <Btn kind="soft" small onClick={() => up((s) => {
-                            const ex = s.workouts[gymDay].exercises.find((x) => x.id === e.id);
-                            ex.weight = (Number(ex.weight) || 0) + 2.5; return s;
-                          })}>+2.5</Btn>
-                        </div>
-                      )}
-                    </Card>
-                  );
-                })}
-
-                <Card style={{ marginTop: 10 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Agregar ejercicio manual</div>
-                  <div style={{ display: "grid", gap: 8 }}>
-                    <Input placeholder="Nombre" value={newEx.name} onChange={(e) => setNewEx({ ...newEx, name: e.target.value })} />
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <Input type="number" placeholder="Series" value={newEx.sets} onChange={(e) => setNewEx({ ...newEx, sets: e.target.value })} />
-                      <Input placeholder="Reps" value={newEx.reps} onChange={(e) => setNewEx({ ...newEx, reps: e.target.value })} />
-                      <Input type="number" placeholder="Kg" value={newEx.weight} onChange={(e) => setNewEx({ ...newEx, weight: e.target.value })} />
-                    </div>
-                    <Btn onClick={() => {
-                      if (!newEx.name.trim()) return;
-                      up((s) => {
-                        s.workouts[gymDay].exercises.push({ id: uid(), name: newEx.name.trim(), sets: Number(newEx.sets) || 3, reps: newEx.reps || "10", weight: Number(newEx.weight) || 0 });
-                        return s;
-                      });
-                      setNewEx({ name: "", sets: 3, reps: "10", weight: 0 });
-                    }}>Agregar</Btn>
-                  </div>
-                </Card>
-              </>
-            )}
           </>
         )}
       </>
@@ -2423,12 +2299,13 @@ export default function App() {
   const h1Style = { margin: "4px 4px 14px", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 };
 
   const tabs = [
+    { id: "habitos", label: "Hábitos", icon: "🎯" },
+    { id: "gym", label: "Gym", icon: "💪" },
     { id: "hoy", label: "Hoy", icon: "☀️" },
-    { id: "habitos", label: "Hábitos", icon: "✅" },
-    { id: "gym", label: "Gym", icon: "🏋️" },
-    { id: "dieta", label: "Dieta", icon: "🍎" },
-    { id: "mas", label: "Más", icon: "🏆" },
+    { id: "dieta", label: "Dieta", icon: "🥗" },
+    { id: "mas", label: "Más", icon: "⚙️" },
   ];
+  const activeTabIdx = tabs.findIndex((t) => t.id === tab);
 
   if (!loaded) {
     return (
@@ -2475,19 +2352,28 @@ export default function App() {
         background: C.navBg, backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         border: `1px solid ${C.line}`,
-        borderRadius: 22, display: "flex", justifyContent: "space-around",
+        borderRadius: 22, display: "flex",
         padding: "8px 6px", boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
       }}>
+        <div style={{
+          position: "absolute", top: 8, bottom: 8,
+          left: `calc(6px + ${activeTabIdx} * (100% - 12px) / ${tabs.length})`,
+          width: `calc((100% - 12px) / ${tabs.length})`,
+          background: C.primarySoft, borderRadius: 14,
+          transition: "left 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        }} />
         {tabs.map((t) => {
           const active = tab === t.id;
           return (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
-              background: active ? C.primarySoft : "transparent",
+              position: "relative", zIndex: 1, flex: 1,
+              background: "transparent",
               border: "none", cursor: "pointer", fontFamily: FONT,
               display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-              color: active ? C.primary : C.sub, minWidth: 56,
-              borderRadius: 14, padding: "8px 10px",
-              transition: "background 0.2s, color 0.2s",
+              color: active ? C.primary : C.sub,
+              borderRadius: 14, padding: "8px 4px",
+              transition: "color 0.2s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
+              transform: active ? "scale(1.06)" : "scale(1)",
             }}>
               <span style={{ fontSize: 18, filter: active ? "none" : "grayscale(0.4) opacity(0.85)" }}>{t.icon}</span>
               <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.2 }}>{t.label}</span>
