@@ -1,4 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import {
+  Target, Dumbbell, Sun, Moon, Salad, Settings, Trophy, Flame, Zap, Droplet,
+  TrendingUp, Apple, Sprout, Lock, Unlock, Bell, Lightbulb, Smartphone, X, Calendar,
+  Upload, Award, PersonStanding, Check as CheckIcon, Video, Pencil, AlertTriangle,
+} from "lucide-react";
 
 /* ============ NEXO FIT v4 ============
    Nuevo en v4: mapa muscular interactivo (frente/espalda) en Gym,
@@ -310,8 +315,8 @@ function analyzeLift(ex, weight, reps, bodyWeight) {
     const [beg, int_, adv] = ex.ratio;
     if (rel < beg) { level = "Iniciando"; nextTarget = Math.round(beg * bodyWeight); }
     else if (rel < int_) { level = "Principiante"; nextTarget = Math.round(int_ * bodyWeight); }
-    else if (rel < adv) { level = "Intermedio 💪"; nextTarget = Math.round(adv * bodyWeight); }
-    else { level = "Avanzado 🏆"; nextTarget = null; }
+    else if (rel < adv) { level = "Intermedio"; nextTarget = Math.round(adv * bodyWeight); }
+    else { level = "Avanzado"; nextTarget = null; }
   }
 
   let advice, tone;
@@ -478,10 +483,10 @@ function Check({ done, onClick, color }) {
     <button onClick={onClick} aria-label={done ? "Desmarcar" : "Marcar"}
       style={{
         width: 30, height: 30, borderRadius: 15, border: done ? "none" : `2px solid ${C.line}`,
-        background: done ? col : "transparent", color: "#fff", fontSize: 16, fontWeight: 800,
+        background: done ? col : "transparent", color: "#fff",
         display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0,
       }}>
-      {done ? "✓" : ""}
+      {done ? <CheckIcon size={16} strokeWidth={3} /> : null}
     </button>
   );
 }
@@ -605,8 +610,8 @@ function BodyMap({ side, selected, onSelect }) {
       {side === "front" ? (
         <g>
           {/* hombros (deltoides) */}
-          <ellipse cx="57" cy="66" rx="13" ry="11" {...P("hombros")} />
-          <ellipse cx="143" cy="66" rx="13" ry="11" {...P("hombros")} />
+          <ellipse cx="56" cy="65" rx="15" ry="14" {...P("hombros")} />
+          <ellipse cx="144" cy="65" rx="15" ry="14" {...P("hombros")} />
           {/* pecho: dos placas pectorales */}
           <path d="M76 74 Q98 68 99 92 Q97 105 84 104 Q72 100 73 86 Z" {...P("pecho")} />
           <path d="M124 74 Q102 68 101 92 Q103 105 116 104 Q128 100 127 86 Z" {...P("pecho")} />
@@ -628,9 +633,9 @@ function BodyMap({ side, selected, onSelect }) {
           {/* oblicuos */}
           <path d="M78 114 Q84 116 84 160 Q77 156 74 138 Q74 124 78 114 Z" {...P("oblicuos")} />
           <path d="M122 114 Q116 116 116 160 Q123 156 126 138 Q126 124 122 114 Z" {...P("oblicuos")} />
-          {/* cuádriceps */}
-          <ellipse cx="83" cy="240" rx="13" ry="46" {...P("cuadriceps")} />
-          <ellipse cx="117" cy="240" rx="13" ry="46" {...P("cuadriceps")} />
+          {/* cuádriceps: siguen el contorno real del muslo, de la cadera a la rodilla */}
+          <path d="M74 184 Q68 210 70 230 Q71 260 77 284 Q85 289 92 284 Q97 260 98 230 Q99 208 96 182 Q85 178 74 184 Z" {...P("cuadriceps")} />
+          <path d="M126 184 Q132 210 130 230 Q129 260 123 284 Q115 289 108 284 Q103 260 102 230 Q101 208 104 182 Q115 178 126 184 Z" {...P("cuadriceps")} />
           {/* aductores (cara interna del muslo) */}
           <ellipse cx="94" cy="216" rx="5" ry="28" {...P("aductores")} />
           <ellipse cx="106" cy="216" rx="5" ry="28" {...P("aductores")} />
@@ -640,8 +645,8 @@ function BodyMap({ side, selected, onSelect }) {
           {/* trapecio */}
           <path d="M100 48 Q128 54 128 66 Q122 84 114 96 Q100 88 86 96 Q78 84 72 66 Q72 54 100 48 Z" {...P("trapecio")} />
           {/* hombros posteriores */}
-          <ellipse cx="57" cy="66" rx="12" ry="10" {...P("hombros")} />
-          <ellipse cx="143" cy="66" rx="12" ry="10" {...P("hombros")} />
+          <ellipse cx="56" cy="65" rx="15" ry="14" {...P("hombros")} />
+          <ellipse cx="144" cy="65" rx="15" ry="14" {...P("hombros")} />
           {/* dorsales en V */}
           <path d="M72 94 Q100 90 128 94 Q126 110 121 124 Q100 148 79 124 Q74 110 72 94 Z" {...P("espalda")} />
           {/* tríceps */}
@@ -655,9 +660,9 @@ function BodyMap({ side, selected, onSelect }) {
           {/* glúteos */}
           <ellipse cx="86" cy="188" rx="15" ry="14" {...P("gluteos")} />
           <ellipse cx="114" cy="188" rx="15" ry="14" {...P("gluteos")} />
-          {/* isquiotibiales */}
-          <ellipse cx="83" cy="250" rx="12" ry="42" {...P("isquios")} />
-          <ellipse cx="117" cy="250" rx="12" ry="42" {...P("isquios")} />
+          {/* isquiotibiales: mismo contorno de muslo que cuádriceps, vista de atrás */}
+          <path d="M74 184 Q68 212 70 232 Q71 262 78 286 Q85 291 92 286 Q98 262 98 232 Q99 210 96 182 Q85 178 74 184 Z" {...P("isquios")} />
+          <path d="M126 184 Q132 212 130 232 Q129 262 122 286 Q115 291 108 286 Q102 262 102 232 Q101 210 104 182 Q115 178 126 184 Z" {...P("isquios")} />
           {/* gemelos */}
           <ellipse cx="83" cy="348" rx="10" ry="26" {...P("gemelos")} />
           <ellipse cx="117" cy="348" rx="10" ry="26" {...P("gemelos")} />
@@ -760,7 +765,7 @@ function PinGate({ theme, onUnlock }) {
         display: "flex", alignItems: "center", justifyContent: "center",
         boxShadow: `0 12px 32px ${PAL.primaryGlow}`, position: "relative",
       }}>
-        <span style={{ fontSize: 30 }}>🔒</span>
+        <Lock size={28} color="#fff" />
       </div>
       <div style={{ fontSize: 26, fontWeight: 800, marginBottom: 4, letterSpacing: -0.5, position: "relative" }}>NEXO FIT</div>
       <div style={{ fontSize: 14, color: PAL.sub, fontWeight: 600, marginBottom: 32, textAlign: "center", maxWidth: 280, position: "relative" }}>
@@ -962,7 +967,7 @@ export default function App() {
   useEffect(() => {
     if (timer <= 0) return;
     const t = setTimeout(() => {
-      if (timer === 1) setBanner("¡Descanso terminado! Siguiente serie 🔔");
+      if (timer === 1) setBanner("¡Descanso terminado! Siguiente serie");
       setTimer(timer - 1);
     }, 1000);
     return () => clearTimeout(t);
@@ -1023,14 +1028,14 @@ export default function App() {
   const bestStreak = Math.max(0, ...state.habits.map(streak));
 
   const ACHIEVEMENTS = [
-    { icon: "🌱", name: "Primer paso", desc: "Completá tu primer entrenamiento", done: totalWorkouts >= 1 },
-    { icon: "🔥", name: "En racha", desc: "7 días de racha en un hábito", done: bestStreak >= 7 },
-    { icon: "⚡", name: "Imparable", desc: "30 días de racha en un hábito", done: bestStreak >= 30 },
-    { icon: "🏋️", name: "Habitué", desc: "10 entrenamientos registrados", done: totalWorkouts >= 10 },
-    { icon: "🏆", name: "Máquina", desc: "50 entrenamientos registrados", done: totalWorkouts >= 50 },
-    { icon: "💧", name: "Hidratado", desc: "Meta de agua cumplida hoy", done: water >= state.goals.water },
-    { icon: "📈", name: "Bajo control", desc: "Registrá tu peso 7 días", done: Object.keys(state.weightLog).length >= 7 },
-    { icon: "🍎", name: "Nutrición al día", desc: "Registrá 20 comidas", done: Object.values(state.meals).flat().length >= 20 },
+    { Icon: Sprout, name: "Primer paso", desc: "Completá tu primer entrenamiento", done: totalWorkouts >= 1 },
+    { Icon: Flame, name: "En racha", desc: "7 días de racha en un hábito", done: bestStreak >= 7 },
+    { Icon: Zap, name: "Imparable", desc: "30 días de racha en un hábito", done: bestStreak >= 30 },
+    { Icon: Dumbbell, name: "Habitué", desc: "10 entrenamientos registrados", done: totalWorkouts >= 10 },
+    { Icon: Trophy, name: "Máquina", desc: "50 entrenamientos registrados", done: totalWorkouts >= 50 },
+    { Icon: Droplet, name: "Hidratado", desc: "Meta de agua cumplida hoy", done: water >= state.goals.water },
+    { Icon: TrendingUp, name: "Bajo control", desc: "Registrá tu peso 7 días", done: Object.keys(state.weightLog).length >= 7 },
+    { Icon: Apple, name: "Nutrición al día", desc: "Registrá 20 comidas", done: Object.values(state.meals).flat().length >= 20 },
   ];
   const achDone = ACHIEVEMENTS.filter((a) => a.done).length;
 
@@ -1078,7 +1083,7 @@ export default function App() {
       }
       return s;
     });
-    setBanner(`"${exName}" agregado a tu día actual ✅`);
+    setBanner(`"${exName}" agregado a tu día actual`);
     setTimeout(() => setBanner(null), 4000);
   };
 
@@ -1095,7 +1100,7 @@ export default function App() {
             <h1 style={{ margin: "4px 0 14px", fontSize: 34, fontWeight: 800, letterSpacing: -0.8, lineHeight: 1 }}>Hoy</h1>
           </div>
           <Btn kind="soft" small onClick={() => up((s) => { s.theme = s.theme === "dark" ? "light" : "dark"; return s; })}>
-            {state.theme === "dark" ? "☀️" : "🌙"}
+            {state.theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
           </Btn>
         </div>
 
@@ -1107,7 +1112,7 @@ export default function App() {
             display: "flex", alignItems: "center", gap: 12,
             boxShadow: `0 8px 24px ${C.primaryGlow}`,
           }}>
-            <div style={{ fontSize: 24 }}>📲</div>
+            <Smartphone size={24} color="#fff" />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ color: "#fff", fontWeight: 800, fontSize: 14.5, letterSpacing: -0.2 }}>Instalar NEXO FIT</div>
               <div style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: 500 }}>Como app en tu pantalla de inicio</div>
@@ -1121,8 +1126,8 @@ export default function App() {
               setInstallHidden(true);
             }} style={{
               background: "transparent", border: "none", color: "rgba(255,255,255,0.7)",
-              fontSize: 16, cursor: "pointer", padding: 4, marginLeft: -4,
-            }} aria-label="Cerrar">✕</button>
+              cursor: "pointer", padding: 4, marginLeft: -4, display: "flex",
+            }} aria-label="Cerrar"><X size={16} /></button>
           </div>
         )}
 
@@ -1161,8 +1166,8 @@ export default function App() {
             width: 34, height: 34, borderRadius: 10, flexShrink: 0,
             background: `linear-gradient(135deg, ${C.primary}, ${C.accent})`,
             display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: `0 4px 12px ${C.primaryGlow}`, fontSize: 17,
-          }}>💡</div>
+            boxShadow: `0 4px 12px ${C.primaryGlow}`,
+          }}><Lightbulb size={17} color="#fff" /></div>
           <div style={{ fontSize: 14, lineHeight: 1.5, color: C.primaryInk, fontWeight: 500 }}>{tip}</div>
         </div>
 
@@ -1173,7 +1178,7 @@ export default function App() {
             <Row key={h.id}
               left={<span style={{ fontSize: 20 }}>{h.icon}</span>}
               title={h.name}
-              sub={`🔥 ${streak(h)} día${streak(h) === 1 ? "" : "s"} de racha`}
+              sub={<span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Flame size={11} /> {streak(h)} día{streak(h) === 1 ? "" : "s"} de racha</span>}
               right={<Check done={!!h.history[today]} onClick={() =>
                 up((s) => {
                   const hh = s.habits.find((x) => x.id === h.id);
@@ -1192,9 +1197,9 @@ export default function App() {
                 style={{
                   width: 34, height: 42, borderRadius: 10, cursor: "pointer",
                   background: i < water ? C.blue : C.blueSoft,
-                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17,
+                  display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                {i < water ? "💧" : ""}
+                {i < water ? <Droplet size={17} color="#fff" fill="#fff" /> : null}
               </div>
             ))}
           </div>
@@ -1260,8 +1265,8 @@ export default function App() {
               <div style={{ fontSize: 13, fontWeight: 700, color: C.sub }}>Descanso</div>
               <button onClick={() => setTimer(0)} style={{
                 background: C.soft, border: "none", borderRadius: 999, width: 28, height: 28,
-                cursor: "pointer", fontSize: 13, fontFamily: FONT, color: C.sub,
-              }}>✕</button>
+                cursor: "pointer", color: C.sub, display: "flex", alignItems: "center", justifyContent: "center",
+              }}><X size={14} /></button>
             </div>
           ) : (
             <div style={{
@@ -1345,12 +1350,12 @@ export default function App() {
                   ) : (
                     <>
                       <div style={{ fontWeight: 700, fontSize: 15 }}>{h.name}</div>
-                      <div style={{ fontSize: 12.5, color: C.amber, fontWeight: 700 }}>🔥 racha: {streak(h)}</div>
+                      <div style={{ fontSize: 12.5, color: C.amber, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}><Flame size={12} /> racha: {streak(h)}</div>
                     </>
                   )}
                 </div>
-                <Btn kind="ghost" small onClick={() => setHabitMonth(showMonth ? null : h.id)}>{showMonth ? "▲" : "📅"}</Btn>
-                <Btn kind="soft" small onClick={() => setEditHabit(editing ? null : h.id)}>{editing ? "Listo" : "✎"}</Btn>
+                <Btn kind="ghost" small onClick={() => setHabitMonth(showMonth ? null : h.id)} style={{ display: "flex" }}>{showMonth ? "▲" : <Calendar size={14} />}</Btn>
+                <Btn kind="soft" small onClick={() => setEditHabit(editing ? null : h.id)} style={{ display: "flex" }}>{editing ? "Listo" : <Pencil size={14} />}</Btn>
               </div>
 
               {editing && (
@@ -1448,7 +1453,7 @@ export default function App() {
                   color: active ? "#fff" : C.sub,
                   boxShadow: active ? `0 4px 12px ${C.primaryGlow}` : "none",
                   transition: "all 0.15s",
-                }}>{EXDB[m].icon} {EXDB[m].label}</button>
+                }}>{EXDB[m].label}</button>
               );
             })}
           </div>
@@ -1459,15 +1464,16 @@ export default function App() {
 
         {!bodyWeight && (
           <Card style={{ marginTop: 10, background: C.amberSoft }}>
-            <div style={{ fontSize: 13.5, color: C.amberInk, fontWeight: 600, lineHeight: 1.4 }}>
-              💡 Registrá tu peso corporal en la pestaña Dieta para que el análisis de fuerza sea relativo a tu peso.
+            <div style={{ fontSize: 13.5, color: C.amberInk, fontWeight: 600, lineHeight: 1.4, display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <Lightbulb size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+              <span>Registrá tu peso corporal en la pestaña Dieta para que el análisis de fuerza sea relativo a tu peso.</span>
             </div>
           </Card>
         )}
 
         {md && (
           <>
-            <SectionTitle>{md.icon} Ejercicios de {md.label.toLowerCase()}</SectionTitle>
+            <SectionTitle>Ejercicios de {md.label.toLowerCase()}</SectionTitle>
             {md.exercises.map((e) => {
               const open = openLift === e.name;
               const an = open ? analyzeLift(e, liftCalc.w, liftCalc.r, bodyWeight) : null;
@@ -1478,7 +1484,7 @@ export default function App() {
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 700, fontSize: 15 }}>
-                        {e.name} {inRoutine && <span style={{ fontSize: 11, color: C.primary, fontWeight: 800 }}>· en tu día actual ✓</span>}
+                        {e.name} {inRoutine && <span style={{ fontSize: 11, color: C.primary, fontWeight: 800, display: "inline-flex", alignItems: "center", gap: 2 }}>· en tu día actual <CheckIcon size={12} /></span>}
                       </div>
                       <div style={{ fontSize: 12.5, color: C.sub, fontWeight: 600 }}>{e.eq}{e.ratio ? " · con análisis de fuerza" : ""}</div>
                     </div>
@@ -1493,8 +1499,8 @@ export default function App() {
                         <b>Técnica:</b> {e.tip}
                       </div>
                       <a href={ytLink(e.name)} target="_blank" rel="noreferrer"
-                        style={{ display: "inline-block", fontSize: 13.5, fontWeight: 700, color: C.blue, textDecoration: "none", marginBottom: 12 }}>
-                        📺 Ver cómo se hace (videos de referencia) →
+                        style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13.5, fontWeight: 700, color: C.blue, textDecoration: "none", marginBottom: 12 }}>
+                        <Video size={14} /> Ver cómo se hace (videos de referencia) →
                       </a>
 
                       <div style={{ fontWeight: 700, fontSize: 13.5, margin: "4px 0 8px" }}>¿Cómo venís con este ejercicio?</div>
@@ -1511,8 +1517,9 @@ export default function App() {
 
                       {an && (
                         <div style={{ borderLeft: `4px solid ${toneColor}`, background: C.soft, borderRadius: 12, padding: 12, marginBottom: 10 }}>
-                          <div style={{ fontWeight: 800, fontSize: 14, color: toneColor, marginBottom: 4 }}>
-                            {an.tone === "up" ? "🔺 Momento de subir" : an.tone === "ok" ? "✅ Vas por buen camino" : an.tone === "hold" ? "💪 Consolidá este peso" : "⚠️ Ajustá la carga"}
+                          <div style={{ fontWeight: 800, fontSize: 14, color: toneColor, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
+                            {an.tone === "up" ? <TrendingUp size={16} /> : an.tone === "ok" ? <CheckIcon size={16} /> : an.tone === "hold" ? <Dumbbell size={16} /> : <AlertTriangle size={16} />}
+                            {an.tone === "up" ? "Momento de subir" : an.tone === "ok" ? "Vas por buen camino" : an.tone === "hold" ? "Consolidá este peso" : "Ajustá la carga"}
                           </div>
                           <div style={{ fontSize: 13.5, lineHeight: 1.5 }}>{an.advice}</div>
                           {an.e1rm ? (
@@ -1563,7 +1570,7 @@ export default function App() {
         }
         if (!confirm(`Encontré ${parsed.weeks.length} semana(s) y ${totalEx} ejercicio(s). Esto va a reemplazar tu Programa actual. ¿Importar?`)) return;
         up((s) => { s.program = parsed; s.currentWeek = 0; s.currentDay = 0; return s; });
-        setBanner("Rutina importada ✅");
+        setBanner("Rutina importada");
         setTimeout(() => setBanner(null), 4000);
       } catch {
         setBanner("No pude leer ese archivo. ¿Es un .xlsx válido?");
@@ -1606,8 +1613,9 @@ export default function App() {
         {!isRutina && (
           <Card style={{ marginBottom: 10 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-              <div style={{ fontSize: 13, color: C.sub, fontWeight: 600, lineHeight: 1.4 }}>
-                📥 Importá el Excel que te pasa tu coach y se carga toda la rutina (semanas, días y ejercicios) automáticamente.
+              <div style={{ fontSize: 13, color: C.sub, fontWeight: 600, lineHeight: 1.4, display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <Upload size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>Importá el Excel que te pasa tu coach y se carga toda la rutina (semanas, días y ejercicios) automáticamente.</span>
               </div>
               <Btn small onClick={() => fileImportRef.current && fileImportRef.current.click()} style={{ flexShrink: 0 }}>
                 {importingRoutine ? "Leyendo…" : "Importar .xlsx"}
@@ -1691,8 +1699,9 @@ export default function App() {
 
                 {canCopyPrev && (
                   <Card style={{ marginTop: 10, background: C.primarySoft }}>
-                    <div style={{ fontSize: 13.5, color: C.theme === "dark" ? C.primaryInk : C.primary, fontWeight: 600, marginBottom: 10, lineHeight: 1.4 }}>
-                      💡 La Semana {state.currentWeek} ya tiene ejercicios cargados para este día. ¿Copiamos la misma estructura (sin los pesos) para seguir la progresión?
+                    <div style={{ fontSize: 13.5, color: C.theme === "dark" ? C.primaryInk : C.primary, fontWeight: 600, marginBottom: 10, lineHeight: 1.4, display: "flex", gap: 8, alignItems: "flex-start" }}>
+                      <Lightbulb size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+                      <span>La Semana {state.currentWeek} ya tiene ejercicios cargados para este día. ¿Copiamos la misma estructura (sin los pesos) para seguir la progresión?</span>
                     </div>
                     <Btn small onClick={copyPrevWeek}>Copiar ejercicios de Semana {state.currentWeek}</Btn>
                   </Card>
@@ -1714,13 +1723,15 @@ export default function App() {
                             onChange={(ev) => editExercise(e.id, "name", ev.target.value)}
                             style={{ fontWeight: 700 }} />
                           {isRutina && pr ? (
-                            <div style={{ fontSize: 11.5, color: C.amber, fontWeight: 800, marginTop: 4 }}>🏅 PR {pr} kg</div>
+                            <div style={{ fontSize: 11.5, color: C.amber, fontWeight: 800, marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                              <Award size={12} /> PR {pr} kg
+                            </div>
                           ) : null}
                         </div>
                         {isRutina && (hist.length > 0 || dbEx) && (
                           <Btn kind="ghost" small onClick={() => setExDetail(showDetail ? null : e.id)}>{showDetail ? "▲" : "ℹ️"}</Btn>
                         )}
-                        <Btn kind="danger" small onClick={() => removeExercise(e.id)}>✕</Btn>
+                        <Btn kind="danger" small onClick={() => removeExercise(e.id)}><X size={14} /></Btn>
                       </div>
 
                       {showDetail && (
@@ -1729,7 +1740,9 @@ export default function App() {
                             <>
                               <div style={{ fontSize: 13, lineHeight: 1.5, marginBottom: 6 }}><b>Técnica:</b> {dbEx.tip}</div>
                               <a href={ytLink(e.name)} target="_blank" rel="noreferrer"
-                                style={{ fontSize: 13, fontWeight: 700, color: C.blue, textDecoration: "none" }}>📺 Ver cómo se hace →</a>
+                                style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: C.blue, textDecoration: "none" }}>
+                                <Video size={13} /> Ver cómo se hace →
+                              </a>
                             </>
                           )}
                           {hist.length > 0 && (
@@ -1738,7 +1751,9 @@ export default function App() {
                               {hist.map((x, i) => (
                                 <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "2px 0", fontWeight: 600 }}>
                                   <span style={{ color: C.sub }}>{fmtDate(x.date)}</span>
-                                  <span style={{ color: Number(x.weight) === pr ? C.amber : C.ink }}>{x.weight} kg{Number(x.weight) === pr ? " 🏅" : ""}</span>
+                                  <span style={{ color: Number(x.weight) === pr ? C.amber : C.ink, display: "flex", alignItems: "center", gap: 4 }}>
+                                    {x.weight} kg{Number(x.weight) === pr ? <Award size={12} /> : null}
+                                  </span>
                                 </div>
                               ))}
                             </>
@@ -1805,7 +1820,7 @@ export default function App() {
 
         <div style={{ marginBottom: 14 }}>
           <Segmented
-            options={[["rutina", "Rutina"], ["programa", "Programa"], ["musculos", "🧍 Músculos"], ["historial", "Historial"]]}
+            options={[["rutina", "Rutina"], ["programa", "Programa"], ["musculos", <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><PersonStanding size={13} /> Músculos</span>], ["historial", "Historial"]]}
             value={gymView}
             onChange={setGymView}
           />
@@ -1908,7 +1923,7 @@ export default function App() {
                   )}
                   <Btn kind="danger" small onClick={() => up((s) => {
                     s.meals[today] = (s.meals[today] || []).filter((x) => x.id !== m.id); return s;
-                  })}>✕</Btn>
+                  })}><X size={14} /></Btn>
                 </div>
               } />
           ))}
@@ -2035,7 +2050,7 @@ export default function App() {
               </div>
             </>
           ) : (
-            <div style={{ fontSize: 13, color: C.sub }}>Registrá tu peso al menos 2 días para ver el gráfico. También se usa en el análisis de fuerza del mapa muscular 🧍.</div>
+            <div style={{ fontSize: 13, color: C.sub }}>Registrá tu peso al menos 2 días para ver el gráfico. También se usa en el análisis de fuerza del mapa muscular.</div>
           )}
         </Card>
 
@@ -2057,7 +2072,7 @@ export default function App() {
               <span>Cint {m.waist || "–"} · Pecho {m.chest || "–"} · Brazo {m.arm || "–"}</span>
               <Btn kind="danger" small style={{ padding: "0 6px" }} onClick={() => up((s) => {
                 s.measurements = s.measurements.filter((x) => x.id !== m.id); return s;
-              })}>✕</Btn>
+              })}><X size={14} /></Btn>
             </div>
           ))}
           {state.measurements.length === 0 && <div style={{ fontSize: 13, color: C.sub }}>Registrá tus medidas para seguir el progreso más allá de la balanza.</div>}
@@ -2074,8 +2089,9 @@ export default function App() {
     return (
       <>
         <PageHeader title="Más" subtitle="Logros y ajustes" right={
-          <Btn kind="soft" small onClick={() => up((s) => { s.theme = s.theme === "dark" ? "light" : "dark"; return s; })}>
-            {state.theme === "dark" ? "☀️ Claro" : "🌙 Oscuro"}
+          <Btn kind="soft" small onClick={() => up((s) => { s.theme = s.theme === "dark" ? "light" : "dark"; return s; })}
+            style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            {state.theme === "dark" ? <Sun size={15} /> : <Moon size={15} />} {state.theme === "dark" ? "Claro" : "Oscuro"}
           </Btn>
         } />
 
@@ -2083,7 +2099,7 @@ export default function App() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           {ACHIEVEMENTS.map((a, i) => (
             <Card key={i} style={{ opacity: a.done ? 1 : 0.45, padding: 12 }}>
-              <div style={{ fontSize: 22 }}>{a.done ? a.icon : "🔒"}</div>
+              <div>{a.done ? <a.Icon size={24} color={C.primary} /> : <Lock size={24} color={C.sub} />}</div>
               <div style={{ fontWeight: 800, fontSize: 13.5, margin: "4px 0 2px" }}>{a.name}</div>
               <div style={{ fontSize: 11.5, color: C.sub, fontWeight: 500, lineHeight: 1.35 }}>{a.desc}</div>
             </Card>
@@ -2115,7 +2131,7 @@ export default function App() {
                     </>
                   )}
                 </div>
-                <Btn kind="soft" small onClick={() => setEditRem(editing ? null : r.id)}>{editing ? "Listo" : "✎"}</Btn>
+                <Btn kind="soft" small onClick={() => setEditRem(editing ? null : r.id)} style={{ display: "flex" }}>{editing ? "Listo" : <Pencil size={14} />}</Btn>
               </div>
               {editing && (
                 <div style={{ marginTop: 10 }}>
@@ -2165,7 +2181,7 @@ export default function App() {
           {(state.customTips || []).map((t, i) => (
             <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 8, padding: "8px 4px", borderTop: `1px solid ${C.line}`, fontSize: 14 }}>
               <span>⭐ {t}</span>
-              <Btn kind="danger" small onClick={() => up((s) => { s.customTips = s.customTips.filter((_, j) => j !== i); return s; })}>✕</Btn>
+              <Btn kind="danger" small onClick={() => up((s) => { s.customTips = s.customTips.filter((_, j) => j !== i); return s; })}><X size={14} /></Btn>
             </div>
           ))}
           {(state.customTips || []).length === 0 && <div style={{ fontSize: 13, color: C.sub }}>Tus tips entran en la rotación del "Tip del día".</div>}
@@ -2178,7 +2194,9 @@ export default function App() {
             return (
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ flex: "1 1 180px", minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{hasPin ? "🔒 PIN activo" : "🔓 Sin PIN"}</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+                    {hasPin ? <Lock size={14} /> : <Unlock size={14} />} {hasPin ? "PIN activo" : "Sin PIN"}
+                  </div>
                   <div style={{ fontSize: 12.5, color: C.sub, fontWeight: 500, lineHeight: 1.4 }}>
                     {hasPin ? "Se te pide al abrir la app en cada sesión nueva." : "Cualquiera con el link puede abrir la app."}
                   </div>
@@ -2299,11 +2317,11 @@ export default function App() {
   const h1Style = { margin: "4px 4px 14px", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 };
 
   const tabs = [
-    { id: "habitos", label: "Hábitos", icon: "🎯" },
-    { id: "gym", label: "Gym", icon: "💪" },
-    { id: "hoy", label: "Hoy", icon: "☀️" },
-    { id: "dieta", label: "Dieta", icon: "🥗" },
-    { id: "mas", label: "Más", icon: "⚙️" },
+    { id: "habitos", label: "Hábitos", Icon: Target },
+    { id: "gym", label: "Gym", Icon: Dumbbell },
+    { id: "hoy", label: "Hoy", Icon: Sun },
+    { id: "dieta", label: "Dieta", Icon: Salad },
+    { id: "mas", label: "Más", Icon: Settings },
   ];
   const activeTabIdx = tabs.findIndex((t) => t.id === tab);
 
@@ -2332,8 +2350,8 @@ export default function App() {
           fontWeight: 700, fontSize: 14.5, boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
           display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center",
         }}>
-          <span>🔔 {banner}</span>
-          <button onClick={() => setBanner(null)} style={{ background: "none", border: "none", color: C.bg, fontSize: 16, cursor: "pointer" }}>✕</button>
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}><Bell size={16} />{banner}</span>
+          <button onClick={() => setBanner(null)} style={{ background: "none", border: "none", color: C.bg, cursor: "pointer", display: "flex" }}><X size={16} /></button>
         </div>
       )}
 
@@ -2375,7 +2393,7 @@ export default function App() {
               transition: "color 0.2s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
               transform: active ? "scale(1.06)" : "scale(1)",
             }}>
-              <span style={{ fontSize: 18, filter: active ? "none" : "grayscale(0.4) opacity(0.85)" }}>{t.icon}</span>
+              <t.Icon size={19} strokeWidth={active ? 2.4 : 2} style={{ opacity: active ? 1 : 0.75 }} />
               <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.2 }}>{t.label}</span>
             </button>
           );
